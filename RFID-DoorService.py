@@ -3,7 +3,7 @@ import sys
 import logging
 import RPi.GPIO as GPIO
 sys.path.append("/home/themagneticdude/MFRC522-python")
-from MFRC522 import MFRC522
+from mfrc522 import MFRC522
 
 
 import serial
