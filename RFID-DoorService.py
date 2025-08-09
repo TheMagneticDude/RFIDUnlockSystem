@@ -3,8 +3,21 @@ import sys
 import logging
 import RPi.GPIO as GPIO
 sys.path.append("/home/themagneticdude/MFRC522-python")
-from mfrc522 import SimpleMFRC522
-
+from mfrc522 import MFRC522
+class MFRC522Reader:
+    def __init__(self, pin_rst=25):
+        self.reader = MFRC522(pin_rst=pin_rst, bus=0, device=0, gpio_mode=GPIO.BCM)
+    
+    def read_id_no_block(self):
+        (status, TagType) = self.reader.MFRC522_Request(self.reader.PICC_REQIDL)
+        if status != self.reader.MI_OK:
+            return None
+        
+        (status, uid) = self.reader.MFRC522_Anticoll()
+        if status == self.reader.MI_OK:
+            card_id = (uid[0] << 24) + (uid[1] << 16) + (uid[2] << 8) + uid[3]
+            return card_id
+        return None
 
 import serial
 import adafruit_fingerprint
@@ -46,7 +59,8 @@ pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
 pwm.start(DUTY_CLOSED)  # Default closed position
 
 # RFID Reader
-reader = SimpleMFRC522();
+# Create reader instance (RST pin = GPIO25)
+reader = MFRC522Reader(pin_rst=25)
 
 # Valid IDs
 valid_keys = [584188916640, 700944024593, 466974685233]
