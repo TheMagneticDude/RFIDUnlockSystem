@@ -10,6 +10,13 @@ import serial
 import adafruit_fingerprint
 import threading
 
+import os
+#//reset gpio 14 and 15 to serial data
+
+import subprocess
+subprocess.run(['raspi-gpio', 'set', '14', 'alt0'])
+subprocess.run(['raspi-gpio', 'set', '15', 'alt0'])
+
 DEBUGMODE = True;
 # Constants
 #PINS
@@ -120,6 +127,8 @@ def unlockServo():
     pwm.ChangeDutyCycle(DUTY_CLOSED)
 
 
+#stop gpio warnings
+GPIO.setwarnings(False);
 
 if __name__ == "__main__":
     ##start async thread
