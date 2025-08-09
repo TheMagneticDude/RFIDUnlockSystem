@@ -45,9 +45,7 @@ GPIO.output(INVALID_PIN, GPIO.LOW)
 pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
 pwm.start(DUTY_CLOSED)  # Default closed position
 
-# RFID Reader
-# Create reader instance (RST pin = GPIO25)
-reader = MFRC522Reader(pin_rst=25)
+
 
 # Valid IDs
 valid_keys = [584188916640, 700944024593, 466974685233]
@@ -94,7 +92,9 @@ class MFRC522Reader:
             card_id = (uid[0] << 24) + (uid[1] << 16) + (uid[2] << 8) + uid[3]
             return card_id
         return None
-    
+# RFID Reader
+# Create reader instance (RST pin = GPIO25)
+reader = MFRC522Reader(pin_rst=25)
     
 
 def fingerprint_listener():
