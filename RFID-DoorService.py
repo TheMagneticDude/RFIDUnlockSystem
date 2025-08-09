@@ -15,9 +15,9 @@ import os
 
 import subprocess
 #stop gpio 14 and 15 from being changed away from uart pins
-subprocess.run(['raspi-gpio', 'set', '14', 'a0'])
-subprocess.run(['raspi-gpio', 'set', '15', 'a0'])
-
+# subprocess.run(['raspi-gpio', 'set', '14', 'a0'])
+# subprocess.run(['raspi-gpio', 'set', '15', 'a0'])
+# 
 DEBUGMODE = True;
 # Constants
 #PINS
@@ -66,63 +66,63 @@ logging.info("RFID Program started")
 
 last_read_time = 0
 
-
-
-##prevent multiple threads from accessing the sensor at once
-sensor_lock = threading.Lock()
-
-
-# Open UART serial port
-uart = serial.Serial("/dev/serial0", baudrate=57600, timeout=1)
-
-# Initialize the fingerprint sensor
-finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
-
-
-def fingerprint_listener():
-    while True:
-        try:
-            with sensor_lock:
-                if finger.get_image() == adafruit_fingerprint.OK:
-                    if finger.image_2_tz(1) != adafruit_fingerprint.OK:
-                        if(DEBUGMODE): print("Invalid fingerprint: failed to convert image");
-                        continue
-                    if finger.finger_search() != adafruit_fingerprint.OK:
-                        if(DEBUGMODE): print("Fingerprint not recognized");
-                        continue
-                    if(DEBUGMODE): print(f"\n Fingerprint recognized: ID #{finger.finger_id} (confidence {finger.confidence})");
-                    
-                    #//Set flag for fingerprint recognized + id +
-                    try:
-                        index = valid_fingers.index(finger.finger_id)
-                        if(DEBUGMODE): print("Authorized! Unlocking door...")
-                        if(DEBUGMODE): print("Welcome", finger_names[index])
-                        logging.info(f"[INFO] Authorized! Door unlocked to {finger_names[index]}")
-                        #unlock servo
-                        unlockServo();
-                    except ValueError:
-                        if DEBUGMODE:
-                            print(f"Fingerprint ID {finger.finger_id} not authorized")
-                        continue
-                    
-            time.sleep(0.05)  # prevent rapid repeat
-        except RuntimeError as e:
-            if(DEBUGMODE): print("Fingerprint error:", e)
-            time.sleep(1)
-
-
-def get_fingerprint():
-    with sensor_lock:
-        if(DEBUGMODE): print("Waiting for finger...")
-        if finger.get_image() == adafruit_fingerprint.OK:
-            if finger.image_2_tz(1) != adafruit_fingerprint.OK:
-                return False
-            if finger.finger_search() != adafruit_fingerprint.OK:
-                return False
-            if(DEBUGMODE): print("Found ID #", finger.finger_id, "with confidence", finger.confidence)
-            return True
-        else:
-            return False
+# 
+# 
+# ##prevent multiple threads from accessing the sensor at once
+# sensor_lock = threading.Lock()
+# 
+# 
+# # Open UART serial port
+# uart = serial.Serial("/dev/serial0", baudrate=57600, timeout=1)
+# 
+# # Initialize the fingerprint sensor
+# finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
+# 
+# 
+# def fingerprint_listener():
+#     while True:
+#         try:
+#             with sensor_lock:
+#                 if finger.get_image() == adafruit_fingerprint.OK:
+#                     if finger.image_2_tz(1) != adafruit_fingerprint.OK:
+#                         if(DEBUGMODE): print("Invalid fingerprint: failed to convert image");
+#                         continue
+#                     if finger.finger_search() != adafruit_fingerprint.OK:
+#                         if(DEBUGMODE): print("Fingerprint not recognized");
+#                         continue
+#                     if(DEBUGMODE): print(f"\n Fingerprint recognized: ID #{finger.finger_id} (confidence {finger.confidence})");
+#                     
+#                     #//Set flag for fingerprint recognized + id +
+#                     try:
+#                         index = valid_fingers.index(finger.finger_id)
+#                         if(DEBUGMODE): print("Authorized! Unlocking door...")
+#                         if(DEBUGMODE): print("Welcome", finger_names[index])
+#                         logging.info(f"[INFO] Authorized! Door unlocked to {finger_names[index]}")
+#                         #unlock servo
+#                         unlockServo();
+#                     except ValueError:
+#                         if DEBUGMODE:
+#                             print(f"Fingerprint ID {finger.finger_id} not authorized")
+#                         continue
+#                     
+#             time.sleep(0.05)  # prevent rapid repeat
+#         except RuntimeError as e:
+#             if(DEBUGMODE): print("Fingerprint error:", e)
+#             time.sleep(1)
+# 
+# 
+# def get_fingerprint():
+#     with sensor_lock:
+#         if(DEBUGMODE): print("Waiting for finger...")
+#         if finger.get_image() == adafruit_fingerprint.OK:
+#             if finger.image_2_tz(1) != adafruit_fingerprint.OK:
+#                 return False
+#             if finger.finger_search() != adafruit_fingerprint.OK:
+#                 return False
+#             if(DEBUGMODE): print("Found ID #", finger.finger_id, "with confidence", finger.confidence)
+#             return True
+#         else:
+#             return False
 def unlockServo():
     GPIO.output(DOOR_PIN, GPIO.HIGH)
     pwm.ChangeDutyCycle(DUTY_OPEN)
