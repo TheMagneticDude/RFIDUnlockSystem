@@ -45,6 +45,13 @@ GPIO.output(INVALID_PIN, GPIO.LOW)
 pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
 pwm.start(DUTY_CLOSED)  # Default closed position
 
+
+#pulse reset pin
+GPIO.setup(25, GPIO.OUT)
+GPIO.output(25, GPIO.LOW)
+time.sleep(0.1)
+GPIO.output(25, GPIO.HIGH)
+
 # RFID Reader
 reader = SimpleMFRC522();
 
