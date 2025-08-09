@@ -46,7 +46,7 @@ pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
 pwm.start(DUTY_CLOSED)  # Default closed position
 
 # RFID Reader
-reader = SimpleMFRC522()
+reader = SimpleMFRC522(pin_rst=25);
 
 # Valid IDs
 valid_keys = [584188916640, 700944024593, 466974685233]
