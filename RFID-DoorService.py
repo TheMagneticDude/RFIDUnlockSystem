@@ -159,7 +159,7 @@ if __name__ == "__main__":
     ##start async thread
     listener_thread = threading.Thread(target=fingerprint_listener, daemon=True)
     listener_thread.start()
-    
+    relay_off()
 
     try:
         while True:
