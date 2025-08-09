@@ -80,7 +80,7 @@ finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
 
 class MFRC522Reader:
     def __init__(self, pin_rst=25):
-        self.reader = MFRC522(pin_rst=pin_rst, bus=0, device=0, gpio_mode=GPIO.BCM)
+        self.reader = MFRC522(pin_rst=pin_rst, bus=0, device=0)
     
     def read_id_no_block(self):
         (status, TagType) = self.reader.MFRC522_Request(self.reader.PICC_REQIDL)
