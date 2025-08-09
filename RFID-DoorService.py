@@ -4,20 +4,7 @@ import logging
 import RPi.GPIO as GPIO
 sys.path.append("/home/themagneticdude/MFRC522-python")
 from mfrc522 import MFRC522
-class MFRC522Reader:
-    def __init__(self, pin_rst=25):
-        self.reader = MFRC522(pin_rst=pin_rst, bus=0, device=0, gpio_mode=GPIO.BCM)
-    
-    def read_id_no_block(self):
-        (status, TagType) = self.reader.MFRC522_Request(self.reader.PICC_REQIDL)
-        if status != self.reader.MI_OK:
-            return None
-        
-        (status, uid) = self.reader.MFRC522_Anticoll()
-        if status == self.reader.MI_OK:
-            card_id = (uid[0] << 24) + (uid[1] << 16) + (uid[2] << 8) + uid[3]
-            return card_id
-        return None
+
 
 import serial
 import adafruit_fingerprint
@@ -92,6 +79,23 @@ uart = serial.Serial("/dev/serial0", baudrate=57600, timeout=1)
 # Initialize the fingerprint sensor
 finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
 
+
+class MFRC522Reader:
+    def __init__(self, pin_rst=25):
+        self.reader = MFRC522(pin_rst=pin_rst, bus=0, device=0, gpio_mode=GPIO.BCM)
+    
+    def read_id_no_block(self):
+        (status, TagType) = self.reader.MFRC522_Request(self.reader.PICC_REQIDL)
+        if status != self.reader.MI_OK:
+            return None
+        
+        (status, uid) = self.reader.MFRC522_Anticoll()
+        if status == self.reader.MI_OK:
+            card_id = (uid[0] << 24) + (uid[1] << 16) + (uid[2] << 8) + uid[3]
+            return card_id
+        return None
+    
+    
 
 def fingerprint_listener():
     while True:
