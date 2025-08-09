@@ -14,7 +14,9 @@ import os
 #//reset gpio 14 and 15 to serial data
 
 import subprocess
-
+#stop gpio 14 and 15 from being changed away from uart pins
+subprocess.run(['raspi-gpio', 'set', '14', 'a0'])
+subprocess.run(['raspi-gpio', 'set', '15', 'a0'])
 
 DEBUGMODE = True;
 # Constants
@@ -30,6 +32,9 @@ DUTY_OPEN = 45
 
 # Setup GPIO
 GPIO.setmode(GPIO.BCM)
+#stop gpio warnings
+GPIO.setwarnings(False);
+
 GPIO.setup(DOOR_PIN, GPIO.OUT)
 GPIO.setup(INVALID_PIN, GPIO.OUT)
 GPIO.setup(SERVO_PIN, GPIO.OUT)
@@ -129,15 +134,11 @@ def unlockServo():
 
 
 if __name__ == "__main__":
-    #stop gpio warnings
-    GPIO.setwarnings(False);
     ##start async thread
     listener_thread = threading.Thread(target=fingerprint_listener, daemon=True)
     listener_thread.start()
     
-    #stop gpio 14 and 15 from being changed away from uart pins
-    subprocess.run(['raspi-gpio', 'set', '14', 'alt0'])
-    subprocess.run(['raspi-gpio', 'set', '15', 'alt0'])
+
     try:
         while True:
             try:
