@@ -105,7 +105,7 @@ def fingerprint_listener():
                             print(f"Fingerprint ID {finger.finger_id} not authorized")
                         continue
                     
-            time.sleep(1)  # prevent rapid repeat
+            time.sleep(0.05)  # prevent rapid repeat
         except RuntimeError as e:
             if(DEBUGMODE): print("Fingerprint error:", e)
             time.sleep(1)
