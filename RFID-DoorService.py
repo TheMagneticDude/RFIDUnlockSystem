@@ -24,6 +24,7 @@ DEBUGMODE = True;
 DOOR_PIN = 17
 INVALID_PIN = 18
 SERVO_PIN = 19
+RELAY_PIN = 20
 
 #SERVO
 PWM_FREQ = 350
@@ -38,6 +39,8 @@ GPIO.setwarnings(False);
 GPIO.setup(DOOR_PIN, GPIO.OUT)
 GPIO.setup(INVALID_PIN, GPIO.OUT)
 GPIO.setup(SERVO_PIN, GPIO.OUT)
+GPIO.setup(RELAY_PIN, GPIO.OUT)
+GPIO.output(RELAY_PIN, GPIO.HIGH)  # Turn relay OFF (deactivate)
 GPIO.output(DOOR_PIN, GPIO.LOW)
 GPIO.output(INVALID_PIN, GPIO.LOW)
 
@@ -131,11 +134,15 @@ def get_fingerprint():
         else:
             return False
 def unlockServo():
+    GPIO.output(RELAY_PIN, GPIO.LOW)   # Turn relay ON (activate)
+    
     GPIO.output(DOOR_PIN, GPIO.HIGH)
     pwm.ChangeDutyCycle(DUTY_OPEN)
     time.sleep(3)
     GPIO.output(DOOR_PIN, GPIO.LOW)
     pwm.ChangeDutyCycle(DUTY_CLOSED)
+    
+    GPIO.output(RELAY_PIN, GPIO.HIGH)  # Turn relay OFF (deactivate)
 
 
 
