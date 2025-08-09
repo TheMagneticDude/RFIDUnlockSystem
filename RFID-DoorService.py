@@ -91,11 +91,14 @@ finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
 
 #VERY HACKY WORKAROUND BC RELAY IS BEING ANNOYING (prob bc its 5v and im giving it 3.3v gpios)
 
+
 def relay_on():
     subprocess.run(['sudo', 'raspi-gpio', 'set', '20', 'op', 'dl'], check=True)
+    time.sleep(0.1)
 
 def relay_off():
     subprocess.run(['sudo', 'raspi-gpio', 'set', '20', 'a0'], check=True)
+    time.sleep(0.1)
 
 def fingerprint_listener():
     while True:
