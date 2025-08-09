@@ -39,8 +39,8 @@ GPIO.setwarnings(False);
 GPIO.setup(DOOR_PIN, GPIO.OUT)
 GPIO.setup(INVALID_PIN, GPIO.OUT)
 GPIO.setup(SERVO_PIN, GPIO.OUT)
-GPIO.setup(RELAY_PIN, GPIO.OUT)
-GPIO.output(RELAY_PIN, GPIO.LOW)
+# GPIO.setup(RELAY_PIN, GPIO.OUT)
+# GPIO.output(RELAY_PIN, GPIO.LOW)
 GPIO.output(DOOR_PIN, GPIO.LOW)
 GPIO.output(INVALID_PIN, GPIO.LOW)
 
@@ -89,6 +89,14 @@ uart = serial.Serial("/dev/serial0", baudrate=57600, timeout=1)
 finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
 
 
+#VERY HACKY WORKAROUND BC RELAY IS BEING ANNOYING (prob bc its 5v and im giving it 3.3v gpios)
+
+def relay_on():
+    subprocess.run(['sudo', 'raspi-gpio', 'set', '20', 'op', 'dl'], check=True)
+
+def relay_off():
+    subprocess.run(['sudo', 'raspi-gpio', 'set', '20', 'a0'], check=True)
+
 def fingerprint_listener():
     while True:
         try:
@@ -134,7 +142,7 @@ def get_fingerprint():
         else:
             return False
 def unlockServo():
-    GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
+    relay_on();
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
     pwm.ChangeDutyCycle(DUTY_OPEN)
@@ -142,7 +150,7 @@ def unlockServo():
     GPIO.output(DOOR_PIN, GPIO.LOW)
     pwm.ChangeDutyCycle(DUTY_CLOSED)
     
-    GPIO.output(RELAY_PIN, GPIO.LOW)  # Turn relay OFF (deactivate)
+    relay_off();
 
 
 
