@@ -171,9 +171,13 @@ def unlockServo():
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
     pwm.ChangeDutyCycle(DUTY_OPEN)
+    #let servo unlock
     time.sleep(3)
     GPIO.output(DOOR_PIN, GPIO.LOW)
     pwm.ChangeDutyCycle(DUTY_CLOSED)
+    
+    #let servo turn back
+    time.sleep(3);
     
     GPIO.output(RELAY_PIN, GPIO.LOW)  # Turn relay OFF (deactivate)
 
