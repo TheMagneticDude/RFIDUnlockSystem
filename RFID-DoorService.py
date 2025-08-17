@@ -77,48 +77,81 @@ logging.info("RFID Program started")
 last_read_time = 0
 
 
+finger = None
+uart = None
+fail_count = 0   #failure counter
 
 ##prevent multiple threads from accessing the sensor at once
 sensor_lock = threading.Lock()
 
 
-# Open UART serial port
-uart = serial.Serial("/dev/serial0", baudrate=57600, timeout=1)
 
-# Initialize the fingerprint sensor
-finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
 
+
+
+def init_fingerprint():
+    global finger, uart
+    try:
+        if uart and uart.is_open:   # <--- safer close
+            uart.close()
+        uart = serial.Serial("/dev/serial0", baudrate=57600, timeout=1)
+        finger = adafruit_fingerprint.Adafruit_Fingerprint(uart)
+        logging.info("[OK] Fingerprint sensor initialized")
+        return True
+    except Exception as e:
+        logging.error(f"[ERROR] Failed to init fingerprint: {e}")
+        return False
+
+
+# === Fingerprint Listener Thread ===
 
 def fingerprint_listener():
+    global finger, uart, fail_count
+
     while True:
         try:
             with sensor_lock:
+                if finger is None:
+                    logging.warning("[WARN] Fingerprint not initialized, retrying...")
+                    if init_fingerprint():
+                        fail_count = 0
+                    time.sleep(2)
+                    continue
+
+                # Try capture and match
                 if finger.get_image() == adafruit_fingerprint.OK:
-                    if finger.image_2_tz(1) != adafruit_fingerprint.OK:
-                        if(DEBUGMODE): print("Invalid fingerprint: failed to convert image");
-                        continue
-                    if finger.finger_search() != adafruit_fingerprint.OK:
-                        if(DEBUGMODE): print("Fingerprint not recognized");
-                        continue
-                    if(DEBUGMODE): print(f"\n Fingerprint recognized: ID #{finger.finger_id} (confidence {finger.confidence})");
-                    
-                    #//Set flag for fingerprint recognized + id +
-                    try:
-                        index = valid_fingers.index(finger.finger_id)
-                        if(DEBUGMODE): print("Authorized! Unlocking door...")
-                        if(DEBUGMODE): print("Welcome", finger_names[index])
-                        logging.info(f"[INFO] Authorized! Door unlocked to {finger_names[index]}")
-                        #unlock servo
-                        unlockServo();
-                    except ValueError:
-                        if DEBUGMODE:
-                            print(f"Fingerprint ID {finger.finger_id} not authorized")
-                        continue
-                    
-            time.sleep(0.05)  # prevent rapid repeat
-        except RuntimeError as e:
-            if(DEBUGMODE): print("Fingerprint error:", e)
-            time.sleep(1)
+                    if finger.image_2_tz(1) == adafruit_fingerprint.OK:
+                        if finger.finger_search() == adafruit_fingerprint.OK:
+                            logging.info(f"[INFO] Fingerprint recognized: ID #{finger.finger_id}")
+                            try:
+                                idx = valid_fingers.index(finger.finger_id)
+                                if DEBUGMODE: print("Authorized finger:", finger_names[idx])
+                                unlockServo()
+                            except ValueError:
+                                logging.warning(f"[WARN] Unauthorized fingerprint ID {finger.finger_id}")
+                        else:
+                            if DEBUGMODE: print("Fingerprint not recognized")
+                    else:
+                        if DEBUGMODE: print("Failed to convert fingerprint image")
+
+        except Exception as e:
+            fail_count += 1
+            logging.error(f"[ERROR] Fingerprint error: {e} (fail #{fail_count})")
+
+            try:
+                if uart and uart.is_open:
+                    uart.close()
+            except Exception as ce:
+                logging.error(f"[CLOSE ERROR] {ce}")
+
+            time.sleep(2)
+
+            if init_fingerprint():
+                fail_count = 0
+            elif fail_count > 5:
+                logging.error("[HALT] Too many failures, waiting 30s before retry")
+                time.sleep(30)
+                fail_count = 0
 
 
 def get_fingerprint():
@@ -149,6 +182,7 @@ def unlockServo():
 
 if __name__ == "__main__":
     ##start async thread
+    # === Start Fingerprint Thread ===
     listener_thread = threading.Thread(target=fingerprint_listener, daemon=True)
     listener_thread.start()
     
