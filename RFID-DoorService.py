@@ -131,6 +131,7 @@ def fingerprint_listener():
                                 logging.warning(f"[WARN] Unauthorized fingerprint ID {finger.finger_id}")
                         else:
                             if DEBUGMODE: print("Fingerprint not recognized")
+                            logging.warning(f"[WARN] Fingerprint not recognized")
                     else:
                         if DEBUGMODE: print("Failed to convert fingerprint image")
 
