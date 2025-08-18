@@ -118,6 +118,7 @@ def fingerprint_listener():
     global finger, uart, fail_count
 
     while True:
+        
         try:
             with sensor_lock:
                 if finger is None:
@@ -229,19 +230,21 @@ doorUnlockedState = False;
 
 unlockGraceActive = False;
 
-def handleMagSwitch():
+def mag_switch_thread():
     global doorState, lastDoorState
-    state = GPIO.input(MAGSWITCH_PIN)
-    if state != lastDoorState:   # only log on change
-        if state:   # HIGH
-            if(DEBUGMODE): print("Door Closed")
-            logging.info(f"[INFO] Door Closed")
-            doorState = False
-        else:
-            if(DEBUGMODE): print("Door Open")
-            logging.info(f"[INFO] Door Open")
-            doorState = True
-        lastDoorState = state
+    while True:
+        state = GPIO.input(MAGSWITCH_PIN)
+        if state != lastDoorState:
+            if state:  # HIGH
+                if DEBUGMODE: print("Door Closed")
+                logging.info(f"[INFO] Door Closed")
+                doorState = False
+            else:
+                if DEBUGMODE: print("Door Open")
+                logging.info(f"[INFO] Door Open")
+                doorState = True
+            lastDoorState = state
+        time.sleep(0.05)  # scan every 50ms
 
 
 
@@ -254,18 +257,15 @@ if __name__ == "__main__":
     # === Start Fingerprint Thread ===
     listener_thread = threading.Thread(target=fingerprint_listener, daemon=True)
     listener_thread.start()
-    handleMagSwitch();
+    #scan magswitch
+    mag_thread = threading.Thread(target=mag_switch_thread, daemon=True)
+    mag_thread.start()
     
 
     try:
         
         while True:
 
-            #scan magswitch
-            handleMagSwitch();
-            
-            
-            
             #Internal unlock Button logic
             if(GPIO.input(BUTTON_PIN)): #HIGH when pressed down
                 if(DEBUGMODE): print("Door unlocked from inside")
