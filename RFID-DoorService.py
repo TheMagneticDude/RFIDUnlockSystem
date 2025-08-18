@@ -177,7 +177,8 @@ def get_fingerprint():
         else:
             return False
 def unlockServo():
-    global doorUnlockedState
+    global doorUnlockedState unlockGraceActive
+    unlockGraceActive = True;
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
@@ -186,6 +187,7 @@ def unlockServo():
     #let servo unlock
     time.sleep(3)
     GPIO.output(RELAY_PIN, GPIO.LOW)    # turn relay OFF (saves servo)
+    unlockGraceActive = False;
 
 
 #door state to track if door is open or not
@@ -196,6 +198,8 @@ lastDoorState = False
 
 
 doorUnlockedState = False;
+
+unlockGraceActive = False;
 
 def handleMagSwitch():
     global doorState, lastDoorState
@@ -261,7 +265,7 @@ if __name__ == "__main__":
 
             time.sleep(0.2)
             # door closing logic (only lock when door just closed)
-            if doorState == False and doorUnlockedState == True:
+            if doorState == False and doorUnlockedState == True and unlockGraceActive == False:
                 turnBackTime = 2
                 # door just transitioned from open -> closed
                 if(DEBUGMODE): print("Door closed, locking...")
