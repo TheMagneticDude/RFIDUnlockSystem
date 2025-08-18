@@ -189,6 +189,7 @@ def unlockServo():
 
 
 #door state to track if door is open or not
+    #closed by default
 doorState = False;
 
 lastDoorState = False
@@ -265,8 +266,10 @@ if __name__ == "__main__":
                 if(DEBUGMODE): print("Door closed, locking...")
                 logging.info("[INFO] Door closed, locking")
                 
-                GPIO.output(RELAY_PIN, GPIO.HIGH)   # power servo
+                GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
+                
                 GPIO.output(DOOR_PIN, GPIO.LOW)
+                if(DEBUGMODE): print("Duty CLosed")
                 pwm.ChangeDutyCycle(DUTY_CLOSED)
 
                 time.sleep(2)  # let servo turn back
