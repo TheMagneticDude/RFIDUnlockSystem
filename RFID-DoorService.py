@@ -17,7 +17,7 @@ import subprocess
 #stop gpio 14 and 15 from being changed away from uart pins
 subprocess.run(['raspi-gpio', 'set', '14', 'a0'])
 subprocess.run(['raspi-gpio', 'set', '15', 'a0'])
-
+ 
 DEBUGMODE = True;
 # Constants
 #PINS
@@ -190,9 +190,9 @@ def unlockServo():
 #door state to track if door is open or not
 doorState = False;
 
-lastDoorState = None
+lastDoorState = False
 
-prevDoorState = None
+prevDoorState = False
 
 
 def handleMagSwitch():
