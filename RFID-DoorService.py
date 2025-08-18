@@ -204,7 +204,7 @@ unlockGraceActive = False;
 def handleMagSwitch():
     global doorState, lastDoorState
     state = GPIO.input(MAGSWITCH_PIN)
-    if state != lastDoorState:   # only log on change
+    #if state != lastDoorState:   # only log on change
         if state:   # HIGH
             logging.info(f"[INFO] Door Closed")
             doorState = False
