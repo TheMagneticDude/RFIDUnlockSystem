@@ -176,9 +176,34 @@ def get_fingerprint():
             return True
         else:
             return False
+        
+        
+        
+        
+        
+# Global lock for MFRC522 reset
+rfid_lock = threading.Lock()
+def reset_mfrc522():
+    global reader
+    with rfid_lock:
+        try:
+            del reader
+        except NameError:
+            pass
+        GPIO.output(25, GPIO.LOW)
+        time.sleep(0.1)
+        GPIO.output(25, GPIO.HIGH)
+        time.sleep(0.1)
+        reader = SimpleMFRC522()
+        if DEBUGMODE:
+            print("MFRC522 reset successfully")
+            
+            
 def unlockServo():
     global doorUnlockedState, unlockGraceActive
     unlockGraceActive = True;
+    
+    
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
@@ -188,6 +213,9 @@ def unlockServo():
     time.sleep(3)
     GPIO.output(RELAY_PIN, GPIO.LOW)    # turn relay OFF (saves servo)
     unlockGraceActive = False;
+    
+    # Reset MFRC522 safely after unlocking
+    reset_mfrc522()
 
 
 #door state to track if door is open or not
@@ -214,6 +242,10 @@ def handleMagSwitch():
             logging.info(f"[INFO] Door Open")
             doorState = True
         lastDoorState = state
+
+
+
+
 
 
 
