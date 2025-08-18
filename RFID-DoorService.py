@@ -177,7 +177,7 @@ def get_fingerprint():
         else:
             return False
 def unlockServo():
-    global doorUnlockedState unlockGraceActive
+    global doorUnlockedState, unlockGraceActive
     unlockGraceActive = True;
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
