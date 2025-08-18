@@ -266,7 +266,7 @@ if __name__ == "__main__":
             time.sleep(0.2)
             # door closing logic (only lock when door just closed)
             if doorState == False and doorUnlockedState == True and unlockGraceActive == False:
-                turnBackTime = 1
+                turnBackTime = 1.2
                 # door just transitioned from open -> closed
                 if(DEBUGMODE): print("Door closed, locking...")
                 logging.info("[INFO] Door closed, locking")
