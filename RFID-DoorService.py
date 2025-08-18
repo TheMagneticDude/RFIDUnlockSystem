@@ -205,13 +205,13 @@ def handleMagSwitch():
     global doorState, lastDoorState
     state = GPIO.input(MAGSWITCH_PIN)
     #if state != lastDoorState:   # only log on change
-        if state:   # HIGH
-            logging.info(f"[INFO] Door Closed")
-            doorState = False
-        else:
-            logging.info(f"[INFO] Door Open")
-            doorState = True
-        lastDoorState = state
+    if state:   # HIGH
+        logging.info(f"[INFO] Door Closed")
+        doorState = False
+    else:
+        logging.info(f"[INFO] Door Open")
+        doorState = True
+    lastDoorState = state
 
 
 
