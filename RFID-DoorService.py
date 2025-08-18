@@ -177,11 +177,12 @@ def get_fingerprint():
         else:
             return False
 def unlockServo():
-    
+    global doorUnlockedState
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
     pwm.ChangeDutyCycle(DUTY_OPEN)
+    doorUnlockedState = True;
     #let servo unlock
     time.sleep(3)
     GPIO.output(RELAY_PIN, GPIO.LOW)    # turn relay OFF (saves servo)
@@ -192,8 +193,8 @@ doorState = False;
 
 lastDoorState = False
 
-prevDoorState = False
 
+doorUnlockedState = False;
 
 def handleMagSwitch():
     global doorState, lastDoorState
@@ -218,9 +219,9 @@ if __name__ == "__main__":
     
 
     try:
-        prevDoorState = doorState
+        
         while True:
-            prevDoorState = doorState  # save before updating
+
             #scan magswitch
             handleMagSwitch();
             
@@ -259,7 +260,7 @@ if __name__ == "__main__":
 
             time.sleep(0.2)
             # door closing logic (only lock when door just closed)
-            if doorState == False and prevDoorState == True:  
+            if doorState == False and doorUnlockedState == True:  
                 # door just transitioned from open -> closed
                 if(DEBUGMODE): print("Door closed, locking...")
                 logging.info("[INFO] Door closed, locking")
@@ -269,6 +270,7 @@ if __name__ == "__main__":
                 pwm.ChangeDutyCycle(DUTY_CLOSED)
 
                 time.sleep(2)  # let servo turn back
+                doorUnlockedState = False;
                 GPIO.output(RELAY_PIN, GPIO.LOW)  # Turn relay OFF (deactivate)
     except KeyboardInterrupt:
         logging.info("RFID Program interrupted by user.")
