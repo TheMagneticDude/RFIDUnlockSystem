@@ -261,7 +261,8 @@ if __name__ == "__main__":
 
             time.sleep(0.2)
             # door closing logic (only lock when door just closed)
-            if doorState == False and doorUnlockedState == True:  
+            if doorState == False and doorUnlockedState == True:
+                turnBackTime = 2
                 # door just transitioned from open -> closed
                 if(DEBUGMODE): print("Door closed, locking...")
                 logging.info("[INFO] Door closed, locking")
@@ -269,10 +270,10 @@ if __name__ == "__main__":
                 GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
                 
                 GPIO.output(DOOR_PIN, GPIO.LOW)
-                if(DEBUGMODE): print("Duty CLosed")
+                if DEBUGMODE: print("doorState:", doorState, "doorUnlockedState:", doorUnlockedState)
                 pwm.ChangeDutyCycle(DUTY_CLOSED)
 
-                time.sleep(2)  # let servo turn back
+                time.sleep(turnBackTime)  # let servo turn back
                 doorUnlockedState = False;
                 GPIO.output(RELAY_PIN, GPIO.LOW)  # Turn relay OFF (deactivate)
     except KeyboardInterrupt:
