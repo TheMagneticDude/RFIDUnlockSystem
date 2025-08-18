@@ -25,6 +25,8 @@ DOOR_PIN = 17
 INVALID_PIN = 18
 SERVO_PIN = 19
 RELAY_PIN = 21
+MAGSWITCH_PIN = 5;
+BUTTON_PIN = 6;
 
 #SERVO
 PWM_FREQ = 350
@@ -43,6 +45,11 @@ GPIO.setup(RELAY_PIN, GPIO.OUT)
 GPIO.output(RELAY_PIN, GPIO.LOW)
 GPIO.output(DOOR_PIN, GPIO.LOW)
 GPIO.output(INVALID_PIN, GPIO.LOW)
+
+#magswitch
+GPIO.setup(MAGSWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_OFF)  # external 10k to GND
+#internal unlock button
+GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_OFF)  # using external 10k to GND
 
 # Setup Servo PWM
 pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
@@ -83,6 +90,8 @@ fail_count = 0   #failure counter
 
 ##prevent multiple threads from accessing the sensor at once
 sensor_lock = threading.Lock()
+
+
 
 
 
@@ -168,20 +177,35 @@ def get_fingerprint():
         else:
             return False
 def unlockServo():
+    
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
     pwm.ChangeDutyCycle(DUTY_OPEN)
     #let servo unlock
     time.sleep(3)
-    GPIO.output(DOOR_PIN, GPIO.LOW)
-    pwm.ChangeDutyCycle(DUTY_CLOSED)
-    
-    #let servo turn back
-    time.sleep(2);
-    
-    GPIO.output(RELAY_PIN, GPIO.LOW)  # Turn relay OFF (deactivate)
+    GPIO.output(RELAY_PIN, GPIO.LOW)    # turn relay OFF (saves servo)
 
+
+#door state to track if door is open or not
+doorState = False;
+
+lastDoorState = None
+
+prevDoorState = None
+
+
+def handleMagSwitch():
+    global doorState, lastDoorState
+    state = GPIO.input(MAGSWITCH_PIN)
+    if state != lastDoorState:   # only log on change
+        if state:   # HIGH
+            logging.info(f"[INFO] Door Closed")
+            doorState = False
+        else:
+            logging.info(f"[INFO] Door Open")
+            doorState = True
+        lastDoorState = state
 
 
 
@@ -190,10 +214,25 @@ if __name__ == "__main__":
     # === Start Fingerprint Thread ===
     listener_thread = threading.Thread(target=fingerprint_listener, daemon=True)
     listener_thread.start()
+    handleMagSwitch();
     
 
     try:
+        prevDoorState = doorState
         while True:
+            prevDoorState = doorState  # save before updating
+            #scan magswitch
+            handleMagSwitch();
+            
+            
+            
+            #Internal unlock Button logic
+            if(GPIO.input(BUTTON_PIN)): #HIGH when pressed down
+                if(DEBUGMODE): print("Door unlocked from inside")
+                logging.info(f"[INFO] Door Unlocked from inside")
+                unlockServo();
+            
+            
             try:
                 card_id = reader.read_id_no_block()
                 if card_id and time.time() - last_read_time > 1:
@@ -219,7 +258,18 @@ if __name__ == "__main__":
                 if(DEBUGMODE): print("Skipping read error:", e)
 
             time.sleep(0.2)
+            # door closing logic (only lock when door just closed)
+            if doorState == False and prevDoorState == True:  
+                # door just transitioned from open -> closed
+                if(DEBUGMODE): print("Door closed, locking...")
+                logging.info("[INFO] Door closed, locking")
+                
+                GPIO.output(RELAY_PIN, GPIO.HIGH)   # power servo
+                GPIO.output(DOOR_PIN, GPIO.LOW)
+                pwm.ChangeDutyCycle(DUTY_CLOSED)
 
+                time.sleep(2)  # let servo turn back
+                GPIO.output(RELAY_PIN, GPIO.LOW)  # Turn relay OFF (deactivate)
     except KeyboardInterrupt:
         logging.info("RFID Program interrupted by user.")
     except Exception as e:
