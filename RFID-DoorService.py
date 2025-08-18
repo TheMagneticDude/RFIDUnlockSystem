@@ -136,6 +136,7 @@ def fingerprint_listener():
                             try:
                                 idx = valid_fingers.index(finger.finger_id)
                                 if DEBUGMODE: print("Authorized finger:", finger_names[idx])
+                                logging.info(f"[INFO] Authorized! Door unlocked to {id_names[finger.finger_id]}")
                                 unlockServo()
                             except ValueError:
                                 logging.warning(f"[WARN] Unauthorized fingerprint ID {finger.finger_id}")
