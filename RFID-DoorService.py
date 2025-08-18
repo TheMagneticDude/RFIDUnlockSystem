@@ -230,6 +230,8 @@ doorUnlockedState = False;
 
 unlockGraceActive = False;
 
+
+
 def mag_switch_thread():
     global doorState, lastDoorState
     while True:
@@ -261,6 +263,16 @@ if __name__ == "__main__":
     mag_thread = threading.Thread(target=mag_switch_thread, daemon=True)
     mag_thread.start()
     
+    
+    #INIT=================================================
+    # Initial door state from magswitch
+    initial_state = GPIO.input(MAGSWITCH_PIN)
+    if initial_state:  # HIGH = closed
+        doorState = False
+        lastDoorState = True
+    else:  # LOW = open
+        doorState = True
+        lastDoorState = False
 
     try:
         
