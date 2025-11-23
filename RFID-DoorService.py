@@ -94,8 +94,12 @@ sensor_lock = threading.Lock()
 
 
 
-
-
+#debounce stuffs
+def read_debounced(pin, stable_ms=50):
+    """Return stable HIGH/LOW only after it stays the same for stable_ms."""
+    initial = GPIO.input(pin)
+    time.sleep(stable_ms / 1000.0)
+    return initial if GPIO.input(pin) == initial else None
 
 
 def init_fingerprint():
@@ -208,7 +212,7 @@ def unlockServo():
     
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
-    GPIO.output(DOOR_PIN, GPIO.HIGH)
+    GPIO.output(DOOR_PIN, GPIO.LOW)
     pwm.ChangeDutyCycle(DUTY_OPEN)
     doorUnlockedState = True;
     #let servo unlock
@@ -218,6 +222,19 @@ def unlockServo():
     
     # Reset MFRC522 safely after unlocking
     reset_mfrc522()
+
+def lockServo():
+    global doorUnlockedState, unlockGraceActive
+    unlockGraceActive = True
+
+    GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
+    pwm.ChangeDutyCycle(DUTY_CLOSED)
+
+    time.sleep(1.2)  # same as before
+    GPIO.output(RELAY_PIN, GPIO.LOW)    # turn relay OFF (saves servo)
+
+    doorUnlockedState = False
+    unlockGraceActive = False
 
 
 #door state to track if door is open or not
@@ -236,18 +253,25 @@ unlockGraceActive = False;
 def mag_switch_thread():
     global doorState, lastDoorState
     while True:
-        state = GPIO.input(MAGSWITCH_PIN)
-        if state != lastDoorState:
-            if state:  # HIGH
-                if DEBUGMODE: print("Door Closed")
-                logging.info(f"[INFO] Door Closed")
-                doorState = False
+        raw = read_debounced(MAGSWITCH_PIN, stable_ms=80)
+        if raw is None:
+            time.sleep(0.02)
+            continue
+
+        if raw != lastDoorState:
+            # Stable change detected
+            if raw:  # HIGH
+                doorState = False  # closed
+                if DEBUGMODE: print("Door Closed (debounced)")
+                logging.info("[INFO] Door Closed (debounced)")
             else:
-                if DEBUGMODE: print("Door Open")
-                logging.info(f"[INFO] Door Open")
-                doorState = True
-            lastDoorState = state
-        time.sleep(0.05)  # scan every 50ms
+                doorState = True  # open
+                if DEBUGMODE: print("Door Open (debounced)")
+                logging.info("[INFO] Door Open (debounced)")
+
+            lastDoorState = raw
+
+        time.sleep(0.02)
 
 
 
@@ -280,7 +304,8 @@ if __name__ == "__main__":
         while True:
 
             #Internal unlock Button logic
-            if(GPIO.input(BUTTON_PIN)): #HIGH when pressed down
+            btn = read_debounced(BUTTON_PIN, stable_ms=60);
+            if(btn == GPIO.HIGH): #HIGH when pressed down
                 if(DEBUGMODE): print("Door unlocked from inside")
                 logging.info(f"[INFO] Door Unlocked from inside")
                 unlockServo();
@@ -313,20 +338,12 @@ if __name__ == "__main__":
             time.sleep(0.2)
             # door closing logic (only lock when door just closed)
             if doorState == False and doorUnlockedState == True and unlockGraceActive == False:
-                turnBackTime = 1.2
                 # door just transitioned from open -> closed
+                lockServo()
                 if(DEBUGMODE): print("Door closed, locking...")
                 logging.info("[INFO] Door closed, locking")
                 
-                GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
-                
-                GPIO.output(DOOR_PIN, GPIO.LOW)
-                if DEBUGMODE: print("doorState:", doorState, "doorUnlockedState:", doorUnlockedState)
-                pwm.ChangeDutyCycle(DUTY_CLOSED)
 
-                time.sleep(turnBackTime)  # let servo turn back
-                doorUnlockedState = False;
-                GPIO.output(RELAY_PIN, GPIO.LOW)  # Turn relay OFF (deactivate)
     except KeyboardInterrupt:
         logging.info("RFID Program interrupted by user.")
     except Exception as e:
