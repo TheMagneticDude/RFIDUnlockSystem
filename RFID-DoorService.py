@@ -212,7 +212,7 @@ def unlockServo():
     
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
-    GPIO.output(DOOR_PIN, GPIO.LOW)
+    GPIO.output(DOOR_PIN, GPIO.HIGH)
     pwm.ChangeDutyCycle(DUTY_OPEN)
     doorUnlockedState = True;
     #let servo unlock
@@ -223,18 +223,6 @@ def unlockServo():
     # Reset MFRC522 safely after unlocking
     reset_mfrc522()
 
-def lockServo():
-    global doorUnlockedState, unlockGraceActive
-    unlockGraceActive = True
-
-    GPIO.output(RELAY_PIN, GPIO.HIGH)  # power servo
-    pwm.ChangeDutyCycle(DUTY_CLOSED)
-
-    time.sleep(1.2)  # same as before
-    GPIO.output(RELAY_PIN, GPIO.LOW)
-
-    doorUnlockedState = False
-    unlockGraceActive = False
 
 
 #door state to track if door is open or not
@@ -338,12 +326,20 @@ if __name__ == "__main__":
             time.sleep(0.2)
             # door closing logic (only lock when door just closed)
             if doorState == False and doorUnlockedState == True and unlockGraceActive == False:
+                turnBackTime = 1.2
                 # door just transitioned from open -> closed
-                lockServo()
                 if(DEBUGMODE): print("Door closed, locking...")
                 logging.info("[INFO] Door closed, locking")
                 
+                GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
+                
+                GPIO.output(DOOR_PIN, GPIO.LOW)
+                if DEBUGMODE: print("doorState:", doorState, "doorUnlockedState:", doorUnlockedState)
+                pwm.ChangeDutyCycle(DUTY_CLOSED)
 
+                time.sleep(turnBackTime)  # let servo turn back
+                doorUnlockedState = False;
+                GPIO.output(RELAY_PIN, GPIO.LOW)  # Turn relay OFF (deactivate)
     except KeyboardInterrupt:
         logging.info("RFID Program interrupted by user.")
     except Exception as e:
