@@ -292,7 +292,7 @@ if __name__ == "__main__":
 
             #Internal unlock Button logic
             btn = read_debounced(BUTTON_PIN, stable_ms=60);
-            if(btn == GPIO.HIGH:): #HIGH when pressed down
+            if(btn == GPIO.HIGH): #HIGH when pressed down
                 if(DEBUGMODE): print("Door unlocked from inside")
                 logging.info(f"[INFO] Door Unlocked from inside")
                 unlockServo();
