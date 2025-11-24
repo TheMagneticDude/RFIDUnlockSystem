@@ -257,25 +257,29 @@ unlockGraceActive = False;
 def mag_switch_thread():
     global doorState, lastDoorState
     while True:
-        raw = read_debounced(MAGSWITCH_PIN, stable_ms=80)
-        if raw is None:
-            time.sleep(0.02)
+        raw = GPIO.input(MAGSWITCH_PIN)
+
+        # --- INSTANT OPEN DETECTION ---
+        if raw == GPIO.LOW:   # door open (switch open)
+            if lastDoorState != raw:
+                doorState = True
+                lastDoorState = raw
+                if DEBUGMODE: print("Door Open (instant)")
+                logging.info("[INFO] Door Open (instant)")
+            time.sleep(0.01)
             continue
 
-        if raw != lastDoorState:
-            # Stable change detected
-            if raw:  # HIGH
-                doorState = False  # closed
-                if DEBUGMODE: print("Door Closed (debounced)")
-                logging.info("[INFO] Door Closed (debounced)")
-            else:
-                doorState = True  # open
-                if DEBUGMODE: print("Door Open (debounced)")
-                logging.info("[INFO] Door Open (debounced)")
+        # --- DEBOUNCED CLOSE DETECTION ---
+        # raw == HIGH, so door might be closed — confirm stability
+        stable = read_debounced(MAGSWITCH_PIN, stable_ms=80)
+        if stable == GPIO.HIGH and lastDoorState != GPIO.HIGH:
+            doorState = False
+            lastDoorState = GPIO.HIGH
+            if DEBUGMODE: print("Door Closed (debounced)")
+            logging.info("[INFO] Door Closed (debounced)")
 
-            lastDoorState = raw
+        time.sleep(0.01)
 
-        time.sleep(0.02)
 
 
 
