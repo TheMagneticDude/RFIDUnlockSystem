@@ -222,7 +222,7 @@ def unlockServo():
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
-    set_angle(OPEN_ANGLE)
+    set_angle(90)
     doorUnlockedState = True;
     #let servo unlock
     time.sleep(3)
