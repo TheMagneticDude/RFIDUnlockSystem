@@ -212,7 +212,7 @@ def unlockServo():
     
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
-    GPIO.output(DOOR_PIN, GPIO.LOW)
+    GPIO.output(DOOR_PIN, GPIO.HIGH)
     pwm.ChangeDutyCycle(DUTY_OPEN)
     doorUnlockedState = True;
     #let servo unlock
@@ -225,17 +225,21 @@ def unlockServo():
 
 def lockServo():
     global doorUnlockedState, unlockGraceActive
-    unlockGraceActive = True
-
+    unlockGraceActive = True;
+    
+    
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
+    
+    GPIO.output(DOOR_PIN, GPIO.HIGH)
     pwm.ChangeDutyCycle(DUTY_CLOSED)
-
-    time.sleep(1.2)  # same as before
+    doorUnlockedState = False;
+    #let servo unlock
+    time.sleep(3)
     GPIO.output(RELAY_PIN, GPIO.LOW)    # turn relay OFF (saves servo)
-
-    doorUnlockedState = False
-    unlockGraceActive = False
-
+    unlockGraceActive = False;
+    
+    # Reset MFRC522 safely after unlocking
+    reset_mfrc522()
 
 #door state to track if door is open or not
     #closed by default
