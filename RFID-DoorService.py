@@ -30,8 +30,16 @@ BUTTON_PIN = 6;
 
 #SERVO
 PWM_FREQ = 350
-DUTY_CLOSED = 15
-DUTY_OPEN = 45
+DUTY_CLOSED = 0
+DUTY_OPEN = 90
+
+def set_angle(angle):
+    duty = 2 + (angle / 18)     # maps 0–180 to ~2–12% duty cycle
+    GPIO.output(SERVO_PIN, True)
+    pwm.ChangeDutyCycle(duty)
+    time.sleep(0.4)             # gives the servo time to move
+    GPIO.output(SERVO_PIN, False)
+    pwm.ChangeDutyCycle(0)
 
 # Setup GPIO
 GPIO.setmode(GPIO.BCM)
@@ -213,7 +221,7 @@ def unlockServo():
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
-    pwm.ChangeDutyCycle(DUTY_OPEN)
+    set_angle(90)
     doorUnlockedState = True;
     #let servo unlock
     time.sleep(3)
@@ -232,7 +240,7 @@ def lockServo():
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
-    pwm.ChangeDutyCycle(DUTY_CLOSED)
+    set_angle(0)
     doorUnlockedState = False;
     #let servo unlock
     time.sleep(3)
