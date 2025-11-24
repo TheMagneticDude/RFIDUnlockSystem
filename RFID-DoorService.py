@@ -239,8 +239,7 @@ def lockServo():
     GPIO.output(RELAY_PIN, GPIO.LOW)    # turn relay OFF (saves servo)
     unlockGraceActive = False;
     
-    # Reset MFRC522 safely after unlocking
-    reset_mfrc522()
+ 
 
 #door state to track if door is open or not
     #closed by default
