@@ -5,7 +5,6 @@ import RPi.GPIO as GPIO
 sys.path.append("/home/themagneticdude/MFRC522-python")
 from mfrc522 import SimpleMFRC522
 
-import pigpio
 import serial
 import adafruit_fingerprint
 import threading
@@ -34,13 +33,6 @@ DUTY_CLOSED = 0
 DUTY_OPEN = 90
 OPEN_ANGLE = 100
 
-def set_angle(angle):
-    duty = 2 + (angle / 18)     # maps 0–180 to ~2–12% duty cycle
-    GPIO.output(SERVO_PIN, True)
-    pwm.ChangeDutyCycle(duty)
-    time.sleep(0.4)             # gives the servo time to move
-    GPIO.output(SERVO_PIN, False)
-    pwm.ChangeDutyCycle(0)
 
 # Setup GPIO
 GPIO.setmode(GPIO.BCM)
@@ -64,11 +56,6 @@ GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_OFF)  # using external 10k
 pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
 pwm.start(DUTY_CLOSED)  # Default closed position
 
-pi = pigpio.pi()
-
-def set_angle(angle):
-    pulse = 1000 + (angle / 180.0) * 1000  # 1000–2000 µs
-    pi.set_servo_pulsewidth(SERVO_PIN, pulse)
 
 #pulse reset pin
 GPIO.setup(25, GPIO.OUT)
@@ -227,7 +214,7 @@ def unlockServo():
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
-    set_angle(90)
+    pwm.ChangeDutyCycle(DUTY_OPEN)
     doorUnlockedState = True;
     #let servo unlock
     time.sleep(3)
@@ -246,7 +233,7 @@ def lockServo():
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
-    set_angle(0)
+    pwm.ChangeDutyCycle(DUTY_CLOSED)
     doorUnlockedState = False;
     #let servo unlock
     time.sleep(3)
