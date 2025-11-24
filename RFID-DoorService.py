@@ -29,18 +29,12 @@ MAGSWITCH_PIN = 13;
 BUTTON_PIN = 6;
 
 #SERVO
-PWM_FREQ = 350
+PWM_FREQ = 50
 DUTY_CLOSED = 0
 DUTY_OPEN = 90
 OPEN_ANGLE = 100
 
-def set_angle(angle):
-    duty = 2 + (angle / 18)     # maps 0–180 to ~2–12% duty cycle
-    GPIO.output(SERVO_PIN, True)
-    pwm.ChangeDutyCycle(duty)
-    time.sleep(0.4)             # gives the servo time to move
-    GPIO.output(SERVO_PIN, False)
-    pwm.ChangeDutyCycle(0)
+
 
 # Setup GPIO
 GPIO.setmode(GPIO.BCM)
@@ -100,7 +94,13 @@ fail_count = 0   #failure counter
 ##prevent multiple threads from accessing the sensor at once
 sensor_lock = threading.Lock()
 
-
+def set_angle(angle):
+    duty = 2 + (angle / 18)     # maps 0–180 to ~2–12% duty cycle
+    GPIO.output(SERVO_PIN, True)
+    pwm.ChangeDutyCycle(duty)
+    time.sleep(0.4)             # gives the servo time to move
+    GPIO.output(SERVO_PIN, False)
+    pwm.ChangeDutyCycle(0)
 
 
 #debounce stuffs
