@@ -32,6 +32,7 @@ BUTTON_PIN = 6;
 PWM_FREQ = 350
 DUTY_CLOSED = 0
 DUTY_OPEN = 90
+OPEN_ANGLE = 100
 
 def set_angle(angle):
     duty = 2 + (angle / 18)     # maps 0–180 to ~2–12% duty cycle
@@ -221,7 +222,7 @@ def unlockServo():
     GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
     
     GPIO.output(DOOR_PIN, GPIO.HIGH)
-    set_angle(90)
+    set_angle(OPEN_ANGLE)
     doorUnlockedState = True;
     #let servo unlock
     time.sleep(3)
