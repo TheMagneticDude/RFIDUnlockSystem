@@ -95,7 +95,7 @@ sensor_lock = threading.Lock()
 
 
 #debounce stuffs
-def read_debounced(pin, stable_ms=50):
+def read_debounced(pin, stable_ms=100):
     """Return stable HIGH/LOW only after it stays the same for stable_ms."""
     initial = GPIO.input(pin)
     time.sleep(stable_ms / 1000.0)
