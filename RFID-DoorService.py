@@ -222,6 +222,7 @@ def unlockServo():
     
     # Reset MFRC522 safely after unlocking
     reset_mfrc522()
+    time.sleep(3) # extra 3 second grace on unlock to prevent issues
 
 def lockServo():
     global doorUnlockedState, unlockGraceActive
