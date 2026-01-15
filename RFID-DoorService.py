@@ -272,7 +272,7 @@ unlockGraceActive = False;
 
 
 def mag_switch_thread():
-    global doorState, lastDoorState
+    global doorState, lastDoorState, doorUnlockedState
     while True:
         raw = GPIO.input(MAGSWITCH_PIN)
 
@@ -280,6 +280,7 @@ def mag_switch_thread():
         if raw == GPIO.LOW:   # door open (switch open)
             if lastDoorState != raw:
                 doorState = True
+                doorUnlockedState = true
                 lastDoorState = raw
                 if DEBUGMODE: print("Door Open (instant)")
                 logging.info("[INFO] Door Open (instant)")
@@ -375,7 +376,7 @@ if __name__ == "__main__":
 
             time.sleep(0.2)
             # door closing logic (only lock when door just closed)
-            if doorState == False and unlockGraceActive == False:
+            if doorState == False and doorUnlockedState == True and unlockGraceActive == False:
                 # door just transitioned from open -> closed
                 lockServo()
                 if(DEBUGMODE): print("Door closed, locking...")
