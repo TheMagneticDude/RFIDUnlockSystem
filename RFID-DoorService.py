@@ -143,7 +143,7 @@ def fingerprint_listener():
                             try:
                                 idx = valid_fingers.index(finger.finger_id)
                                 if DEBUGMODE: print("Authorized finger:", finger_names[idx])
-                                logging.info(f"[INFO] Authorized! Door unlocked to {id_names[finger.finger_id]}")
+                                logging.info(f"[INFO] Authorized! Door unlocked to {finger_names[idx]}")
                                 unlockServo()
                             except ValueError:
                                 logging.warning(f"[WARN] Unauthorized fingerprint ID {finger.finger_id}")
@@ -229,7 +229,7 @@ def unlockServo():
     
     # Reset MFRC522 safely after unlocking
     reset_mfrc522()
-    time.sleep(3) # extra 3 second grace on unlock to prevent issues
+    time.sleep(7) # extra 7 second grace on unlock to prevent issues
 
 def lockServo():
     global doorUnlockedState, unlockGraceActive
