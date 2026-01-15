@@ -48,9 +48,12 @@ GPIO.output(DOOR_PIN, GPIO.LOW)
 GPIO.output(INVALID_PIN, GPIO.LOW)
 
 #magswitch
-GPIO.setup(MAGSWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_OFF)  # external 10k to GND
+#GPIO.setup(MAGSWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_OFF)  # external 10k to GND
+GPIO.setup(MAGSWITCH_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # use internal pull down too
 #internal unlock button
-GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_OFF)  # using external 10k to GND
+#GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_OFF)  # using external 10k to GND
+GPIO.setup(BUTTON_PIN, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # use internal pull down too
+
 
 # Setup Servo PWM
 pwm = GPIO.PWM(SERVO_PIN, PWM_FREQ)
@@ -284,10 +287,11 @@ def mag_switch_thread():
 
 
 def button_pressed(pin, hold_ms=200):
-    if GPIO.input(pin) == GPIO.LOW:
+    if GPIO.input(pin) == GPIO.HIGH:
         time.sleep(hold_ms / 1000)
-        return GPIO.input(pin) == GPIO.LOW
+        return GPIO.input(pin) == GPIO.HIGH
     return False
+
 
 
 
