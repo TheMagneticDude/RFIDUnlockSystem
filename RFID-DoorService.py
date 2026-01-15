@@ -283,7 +283,11 @@ def mag_switch_thread():
 
 
 
-
+def button_pressed(pin, hold_ms=200):
+    if GPIO.input(pin) == GPIO.LOW:
+        time.sleep(hold_ms / 1000)
+        return GPIO.input(pin) == GPIO.LOW
+    return False
 
 
 
@@ -311,10 +315,14 @@ if __name__ == "__main__":
     try:
         
         while True:
+            
+            if unlockGraceActive:
+                time.sleep(0.1) # dont run code if unlockGrace is active
+                continue
 
             #Internal unlock Button logic
-            btn = read_debounced(BUTTON_PIN, stable_ms=60);
-            if(btn == GPIO.HIGH): #HIGH when pressed down
+   
+            if(button_pressed(BUTTON_PIN, 200)): #HIGH when pressed down
                 if(DEBUGMODE): print("Door unlocked from inside")
                 logging.info(f"[INFO] Door Unlocked from inside")
                 unlockServo();
