@@ -276,6 +276,7 @@ def mag_switch_thread():
         # raw == HIGH, so door might be closed — confirm stability
         stable = read_debounced(MAGSWITCH_PIN, stable_ms=80)
         if stable == GPIO.HIGH and lastDoorState != GPIO.HIGH:
+            time.sleep(0.05) # smol delay before lock
             doorState = False
             lastDoorState = GPIO.HIGH
             if DEBUGMODE: print("Door Closed (debounced)")
