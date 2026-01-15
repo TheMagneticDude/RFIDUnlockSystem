@@ -319,7 +319,8 @@ if __name__ == "__main__":
             if unlockGraceActive:
                 time.sleep(0.1) # dont run code if unlockGrace is active
                 continue
-
+                
+            print("Button Pin State: ", GPIO.input(BUTTON_PIN));
             #Internal unlock Button logic
    
             if(button_pressed(BUTTON_PIN, 200)): #HIGH when pressed down
