@@ -229,18 +229,32 @@ def unlockServo():
 
 def lockServo():
     global doorUnlockedState, unlockGraceActive
-    unlockGraceActive = True;
-    
-    
-    GPIO.output(RELAY_PIN, GPIO.HIGH)   # Turn relay ON (activate)
-    
-    GPIO.output(DOOR_PIN, GPIO.HIGH)
+
+    unlockGraceActive = True
+    GPIO.output(RELAY_PIN, GPIO.HIGH)
+
+    start_time = time.time()
+    LOCK_TIME = 3.0   # seconds total lock attempt
+
     pwm.ChangeDutyCycle(DUTY_CLOSED)
-    doorUnlockedState = False;
-    #let servo unlock
-    time.sleep(3)
-    GPIO.output(RELAY_PIN, GPIO.LOW)    # turn relay OFF (saves servo)
-    unlockGraceActive = False;
+
+    while time.time() - start_time < LOCK_TIME:
+        if is_door_open():
+            if DEBUGMODE:
+                print("⚠ Door opened while locking — aborting lock")
+            logging.warning("[WARNING] Door opened during lock, re-unlocking")
+
+            GPIO.output(RELAY_PIN, GPIO.LOW)
+            unlockGraceActive = False
+            unlockServo()
+            return
+
+        time.sleep(0.05)
+
+    GPIO.output(RELAY_PIN, GPIO.LOW)
+    doorUnlockedState = False
+    unlockGraceActive = False
+
     
  
 
@@ -293,6 +307,8 @@ def button_pressed(pin, hold_ms=200):
     return False
 
 
+def is_door_open():
+    return GPIO.input(MAGSWITCH_PIN) == GPIO.LOW
 
 
 
