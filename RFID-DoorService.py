@@ -70,11 +70,11 @@ reader = SimpleMFRC522();
 
 # Valid IDs
 valid_keys = [584188916640, 700944024593, 466974685233]
-id_names = ['Nathan Cheng BuckID', 'DevCard', 'DevTag']
+id_names = ['Nathan BuckID', 'DevCard', 'DevTag']
 
 #Valid IDs for fingerprint
-valid_fingers = [0];
-finger_names = ["Nathan Cheng Pointer Finger"]
+valid_fingers = [0,2,3,4,5,6,7,8,9];
+finger_names = ["Nathan Left Pointer Finger", "Nathan Right Pointer Finger", "Ronak Right Pointer Finger", "Ronak Left Pointer Finger", "Jacob Right Pointer Finger", "Jacob Right Thumb","Ronak Right Thumb", "Jaylen Right Pointer Finger", "Jaylen Right Thumb"]
 
 # Logging
 logging.basicConfig(
