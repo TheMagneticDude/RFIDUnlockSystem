@@ -378,6 +378,7 @@ if __name__ == "__main__":
             # door closing logic (only lock when door just closed)
             if lock_pending and unlockGraceActive == False: 
                 # door just transitioned from open -> closed
+                lock_pending = False; # reset lock pending flag
                 lockServo()
                 if(DEBUGMODE): print("Door closed, locking...")
                 logging.info("[INFO] Door closed, locking")
