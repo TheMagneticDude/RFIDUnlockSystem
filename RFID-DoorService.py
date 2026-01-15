@@ -210,7 +210,7 @@ def reset_mfrc522():
             
 def unlockServo():
     global doorUnlockedState, unlockGraceActive
-    if unlockGraceActive:  # already running, ignore
+    if unlockGraceActive:  # already running, ignore 
         return
     
     
