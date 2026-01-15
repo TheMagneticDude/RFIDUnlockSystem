@@ -280,7 +280,7 @@ def mag_switch_thread():
         if raw == GPIO.LOW:   # door open (switch open)
             if lastDoorState != raw:
                 doorState = True
-                doorUnlockedState = true
+                doorUnlockedState = True
                 lastDoorState = raw
                 if DEBUGMODE: print("Door Open (instant)")
                 logging.info("[INFO] Door Open (instant)")
