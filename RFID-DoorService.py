@@ -94,7 +94,7 @@ fail_count = 0   #failure counter
 ##prevent multiple threads from accessing the sensor at once
 sensor_lock = threading.Lock()
 
-
+lock_pending = False # if door should attempt to lock
 
 
 #debounce stuffs
@@ -293,6 +293,7 @@ def mag_switch_thread():
             time.sleep(0.05) # smol delay before lock
             doorState = False
             lastDoorState = GPIO.HIGH
+            lock_pending = True
             if DEBUGMODE: print("Door Closed (debounced)")
             logging.info("[INFO] Door Closed (debounced)")
 
@@ -375,7 +376,7 @@ if __name__ == "__main__":
 
             time.sleep(0.2)
             # door closing logic (only lock when door just closed)
-            if doorState == False and doorUnlockedState == True and unlockGraceActive == False:
+            if lock_pending and unlockGraceActive == False: 
                 # door just transitioned from open -> closed
                 lockServo()
                 if(DEBUGMODE): print("Door closed, locking...")
