@@ -29,8 +29,8 @@ BUTTON_PIN = 6;
 
 #SERVO
 PWM_FREQ = 350
-DUTY_CLOSED = 50
-DUTY_OPEN = 10
+DUTY_CLOSED = 10 # 50
+DUTY_OPEN = 50 # 10
 OPEN_ANGLE = 100
 
 
@@ -324,7 +324,7 @@ if __name__ == "__main__":
                 time.sleep(0.1) # dont run code if unlockGrace is active
                 continue
                 
-            print("Button Pin State: ", GPIO.input(BUTTON_PIN));
+            #print("Button Pin State: ", GPIO.input(BUTTON_PIN));
             #Internal unlock Button logic
    
             if(button_pressed(BUTTON_PIN, 200)): #HIGH when pressed down
