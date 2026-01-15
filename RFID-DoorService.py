@@ -70,7 +70,7 @@ reader = SimpleMFRC522();
 
 # Valid IDs
 valid_keys = [584188916640, 700944024593, 466974685233]
-id_names = ['Nathan BuckID', 'DevCard', 'DevTag']
+id_names = ['Nathan BuckID', 'DevCard', 'DevTag'] 
 
 #Valid IDs for fingerprint
 valid_fingers = [0,2,3,4,5,6,7,8,9];
