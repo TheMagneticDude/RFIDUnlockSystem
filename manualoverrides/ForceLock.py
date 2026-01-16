@@ -79,5 +79,5 @@ def lockServo():
 if __name__ == "__main__":
     
     logging.info("[OVERRIDE] Manual override: Force Locked");
-    unlockServo()
+    lockServo()
 
