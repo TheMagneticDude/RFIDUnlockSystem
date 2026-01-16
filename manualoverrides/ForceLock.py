@@ -66,7 +66,7 @@ def unlockServo():
 
 
 def lockServo():
-    if GPIO.input(MAGSWITCH_PIN) == GPIO.LOW # door opened
+    if GPIO.input(MAGSWITCH_PIN) == GPIO.LOW: # door opened
         logging.info("[WARN] Door is open");
         
     GPIO.output(RELAY_PIN, GPIO.HIGH) # Turn relay ON
