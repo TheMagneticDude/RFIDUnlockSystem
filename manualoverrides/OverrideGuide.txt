@@ -1,0 +1,7 @@
+Aliases that can be run
+
+RFIDunlock : unlocks door no matter what
+
+RFIDlock : locks door if door is detected to be closed
+
+RFIDforcelock : locks door even if door is open
