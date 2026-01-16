@@ -80,5 +80,4 @@ if __name__ == "__main__":
     
     logging.info("[OVERRIDE] Manual override: Force Locked");
     unlockServo()
-    pwm.stop()
-    GPIO.cleanup()
+
