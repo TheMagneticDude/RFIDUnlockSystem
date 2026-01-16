@@ -337,9 +337,11 @@ if __name__ == "__main__":
         # if door starts out closed run lock process
         lockServo()
         logging.info("[INFO] Init door closed, locking")
+        doorUnlockedState = False;
     else:  # LOW = open
         doorState = True
         lastDoorState = False
+        doorUnlockedState = True; # assume unlocked if door open
 
     try:
         
