@@ -1,4 +1,8 @@
 # to be called manually from pi console using alias to force lock the door even if its open
+import time
+import sys
+import logging
+import RPi.GPIO as GPIO
 # Constants
 #PINS
 DOOR_PIN = 17

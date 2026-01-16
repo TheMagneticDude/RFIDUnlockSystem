@@ -1,4 +1,8 @@
 # to be called manually from pi console using alias to unlock the door for 7 seconds
+import time
+import sys
+import logging
+import RPi.GPIO as GPIO
 
 # Constants
 #PINS
