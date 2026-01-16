@@ -334,6 +334,9 @@ if __name__ == "__main__":
     if initial_state:  # HIGH = closed
         doorState = False
         lastDoorState = True
+        # if door starts out closed run lock process
+        lockServo()
+        logging.info("[INFO] Init door closed, locking")
     else:  # LOW = open
         doorState = True
         lastDoorState = False
