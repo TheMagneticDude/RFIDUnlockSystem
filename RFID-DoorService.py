@@ -73,8 +73,8 @@ valid_keys = [584188916640, 700944024593, 466974685233]
 id_names = ['Nathan BuckID', 'DevCard', 'DevTag'] 
 
 #Valid IDs for fingerprint
-valid_fingers = [0,2,3,4,5,6,7,8,9,10,11,12];
-finger_names = ["Nathan Left Pointer Finger", "Nathan Right Pointer Finger", "Ronak Right Pointer Finger", "Ronak Left Pointer Finger", "Jacob Right Pointer Finger", "Jacob Right Thumb","Ronak Right Thumb", "Jaylen Right Pointer Finger", "Jaylen Right Thumb", "Nathan Right Thumb", "Ronak Left Thumb","Nathan Left Thumb"]
+valid_fingers = [0,2,3,4,5,6,7,8,9,10,12,11];
+finger_names = ["Nathan Left Pointer Finger", "Nathan Right Pointer Finger", "Ronak Right Pointer Finger", "Ronak Left Pointer Finger", "Jacob Right Pointer Finger", "Jacob Right Thumb","Ronak Right Thumb", "Jaylen Right Pointer Finger", "Jaylen Right Thumb", "Nathan Right Thumb","Nathan Left Thumb","Ronak Left Thum"]
 
 # Logging
 logging.basicConfig(
