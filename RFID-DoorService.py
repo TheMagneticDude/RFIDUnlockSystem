@@ -13,11 +13,15 @@ import os
 #//reset gpio 14 and 15 to serial data
 
 import subprocess
+
+
 #stop gpio 14 and 15 from being changed away from uart pins
 subprocess.run(['raspi-gpio', 'set', '14', 'a0'])
 subprocess.run(['raspi-gpio', 'set', '15', 'a0'])
  
-DEBUGMODE = True;
+DEBUGMODE = False;
+RFIDREADER = False;
+FINGERPRINT = False;
 # Constants
 #PINS
 DOOR_PIN = 17
@@ -84,6 +88,13 @@ logging.basicConfig(
 )
 logging.info("RFID Program started")
 
+
+
+
+
+
+
+
 last_read_time = 0
 
 
@@ -123,54 +134,54 @@ def init_fingerprint():
 
 def fingerprint_listener():
     global finger, uart, fail_count
-
-    while True:
-        
-        try:
-            with sensor_lock:
-                if finger is None:
-                    logging.warning("[WARN] Fingerprint not initialized, retrying...")
-                    if init_fingerprint():
-                        fail_count = 0
-                    time.sleep(2)
-                    continue
-
-                # Try capture and match
-                if finger.get_image() == adafruit_fingerprint.OK:
-                    if finger.image_2_tz(1) == adafruit_fingerprint.OK:
-                        if finger.finger_search() == adafruit_fingerprint.OK:
-                            logging.info(f"[INFO] Fingerprint recognized: ID #{finger.finger_id}")
-                            try:
-                                idx = valid_fingers.index(finger.finger_id)
-                                if DEBUGMODE: print("Authorized finger:", finger_names[idx])
-                                logging.info(f"[INFO] Authorized! Door unlocked to {finger_names[idx]}")
-                                unlockServo()
-                            except ValueError:
-                                logging.warning(f"[WARN] Unauthorized fingerprint ID {finger.finger_id}")
-                        else:
-                            if DEBUGMODE: print("Fingerprint not recognized")
-                            logging.warning(f"[WARN] Fingerprint not recognized")
-                    else:
-                        if DEBUGMODE: print("Failed to convert fingerprint image")
-
-        except Exception as e:
-            fail_count += 1
-            logging.error(f"[ERROR] Fingerprint error: {e} (fail #{fail_count})")
-
+    if(FINGERPRINT): # only run thread if fingerprint is enabled
+        while True:
+            
             try:
-                if uart and uart.is_open:
-                    uart.close()
-            except Exception as ce:
-                logging.error(f"[CLOSE ERROR] {ce}")
+                with sensor_lock:
+                    if finger is None:
+                        logging.warning("[WARN] Fingerprint not initialized, retrying...")
+                        if init_fingerprint():
+                            fail_count = 0
+                        time.sleep(2)
+                        continue
 
-            time.sleep(2)
+                    # Try capture and match
+                    if finger.get_image() == adafruit_fingerprint.OK:
+                        if finger.image_2_tz(1) == adafruit_fingerprint.OK:
+                            if finger.finger_search() == adafruit_fingerprint.OK:
+                                logging.info(f"[INFO] Fingerprint recognized: ID #{finger.finger_id}")
+                                try:
+                                    idx = valid_fingers.index(finger.finger_id)
+                                    if DEBUGMODE: print("Authorized finger:", finger_names[idx])
+                                    logging.info(f"[INFO] Authorized! Door unlocked to {finger_names[idx]}")
+                                    unlockServo()
+                                except ValueError:
+                                    logging.warning(f"[WARN] Unauthorized fingerprint ID {finger.finger_id}")
+                            else:
+                                if DEBUGMODE: print("Fingerprint not recognized")
+                                logging.warning(f"[WARN] Fingerprint not recognized")
+                        else:
+                            if DEBUGMODE: print("Failed to convert fingerprint image")
 
-            if init_fingerprint():
-                fail_count = 0
-            elif fail_count > 5:
-                logging.error("[HALT] Too many failures, waiting 30s before retry")
-                time.sleep(30)
-                fail_count = 0
+            except Exception as e:
+                fail_count += 1
+                logging.error(f"[ERROR] Fingerprint error: {e} (fail #{fail_count})")
+
+                try:
+                    if uart and uart.is_open:
+                        uart.close()
+                except Exception as ce:
+                    logging.error(f"[CLOSE ERROR] {ce}")
+
+                time.sleep(2)
+
+                if init_fingerprint():
+                    fail_count = 0
+                elif fail_count > 5:
+                    logging.error("[HALT] Too many failures, waiting 30s before retry")
+                    time.sleep(30)
+                    fail_count = 0
 
 
 def get_fingerprint():
@@ -321,8 +332,9 @@ def is_door_open():
 if __name__ == "__main__":
     ##start async thread
     # === Start Fingerprint Thread ===
-    listener_thread = threading.Thread(target=fingerprint_listener, daemon=True)
-    listener_thread.start()
+    if(FINGERPRINT): # only activate listener if fingerprint is enabled
+        listener_thread = threading.Thread(target=fingerprint_listener, daemon=True)
+        listener_thread.start()
     #scan magswitch
     mag_thread = threading.Thread(target=mag_switch_thread, daemon=True)
     mag_thread.start()
@@ -361,25 +373,26 @@ if __name__ == "__main__":
             
             
             try:
-                card_id = reader.read_id_no_block()
-                if card_id and time.time() - last_read_time > 1:
-                    if(DEBUGMODE): print(f"Tag detected: {card_id}")
-                    last_read_time = time.time()
+                if(RFIDREADER): # only run if RFID Reader is enabled
+                    card_id = reader.read_id_no_block()
+                    if card_id and time.time() - last_read_time > 1:
+                        if(DEBUGMODE): print(f"Tag detected: {card_id}")
+                        last_read_time = time.time()
 
-                    if card_id in valid_keys:
-                        index = valid_keys.index(card_id)
-                        if(DEBUGMODE): print("Authorized! Unlocking door...")
-                        if(DEBUGMODE): print("Welcome", id_names[index])
-                        logging.info(f"[INFO] Authorized! Door unlocked to {id_names[index]}")
+                        if card_id in valid_keys:
+                            index = valid_keys.index(card_id)
+                            if(DEBUGMODE): print("Authorized! Unlocking door...")
+                            if(DEBUGMODE): print("Welcome", id_names[index])
+                            logging.info(f"[INFO] Authorized! Door unlocked to {id_names[index]}")
 
-                        unlockServo();
+                            unlockServo();
 
-                    else:
-                        logging.info(f"[WARNING] Unauthorized card id: {card_id}")
-                        if(DEBUGMODE): print("? Unauthorized card")
-                        GPIO.output(INVALID_PIN, GPIO.HIGH)
-                        time.sleep(3)
-                        GPIO.output(INVALID_PIN, GPIO.LOW)
+                        else:
+                            logging.info(f"[WARNING] Unauthorized card id: {card_id}")
+                            if(DEBUGMODE): print("? Unauthorized card")
+                            GPIO.output(INVALID_PIN, GPIO.HIGH)
+                            time.sleep(3)
+                            GPIO.output(INVALID_PIN, GPIO.LOW)
             except Exception as e:
                 logging.error(f"[ERROR] RFID read error: {e}")
                 if(DEBUGMODE): print("Skipping read error:", e)
