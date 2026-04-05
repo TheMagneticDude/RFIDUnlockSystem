@@ -15,9 +15,7 @@ GUILD_ID = discord.Object(id=1490450047085838446);
 
  
 #========================= Init =========================
-intents = discord.Intents.default();
-intents.message_content = True;
-client = Client(command_prefix = "!sesame", intents = intents);
+
 
 #========================= Class =========================
 class Client(commands.Bot):
@@ -30,15 +28,37 @@ class Client(commands.Bot):
         if message.content.startswith('!sesame'):
             await message.channel.send(f'Command Recieved: {message.author} executed: {message.content}');
 
-    @client.tree.command(name="door", description="Controls Door", guild = GUILD_ID)
-    async def printer(interaction: discord.Interaction):
-        embed = discord.Embed(title = "Door State", description = "TestState");
-        await interaction.response.send_message(embed = embed);
+    
  
     
     
     
 #========================= Main stuffs =========================
+
+intents = discord.Intents.default();
+intents.message_content = True;
+client = Client(command_prefix = "!sesame", intents = intents);
+
+
+
+
+
+
+@client.tree.command(name="door", description="Controls Door", guild = GUILD_ID)
+    async def printer(interaction: discord.Interaction):
+        embed = discord.Embed(title = "Door State", description = "TestState");
+        await interaction.response.send_message(embed = embed);
+
+
+
+
+
+
+
+
+
+
+
 
 #run bot
 client.run(botToken);
