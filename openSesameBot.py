@@ -45,9 +45,9 @@ client = Client(command_prefix = "!sesame", intents = intents);
 
 
 @client.tree.command(name="door", description="Controls Door", guild = GUILD_ID)
-    async def printer(interaction: discord.Interaction):
-        embed = discord.Embed(title = "Door State", description = "TestState");
-        await interaction.response.send_message(embed = embed);
+async def printer(interaction: discord.Interaction):
+    embed = discord.Embed(title = "Door State", description = "TestState");
+    await interaction.response.send_message(embed = embed);
 
 
 
