@@ -7,10 +7,10 @@ class Client(discord.Client):
 intents = discord.Intents.default();
 intents.message_content = True;
 
-#will fill in after to avoid secret being in repo
-botToken = '';
 
 
 #run bot
 client = Client(intents = intents);
-client.run(botToken);
+
+#will fill in after to avoid secret being in repo
+client.run('');
