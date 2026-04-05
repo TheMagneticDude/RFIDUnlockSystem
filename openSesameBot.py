@@ -8,10 +8,10 @@ class Client(discord.Client):
         if message.author == self.user:
             return
         if message.content.startswith('sesame'):
-            await message.channel.send(f'Command Recieved: {message.author}');
+            await message.channel.send(f'Command Recieved: {message.author} executed {message.content}');
+
     
-    
-    
+ 
     
     
     
