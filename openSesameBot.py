@@ -39,7 +39,7 @@ class Client(commands.Bot):
 
 #discord UI component
 class View(discord.ui.View):
-    @discord.ui.button(label="Click", style=discord.ButtonStyle.red, emoji="🧲")
+    @discord.ui.button(label="Click", style=discord.ButtonStyle.cyan, emoji="🧲")
     async def button_callback(self, button, interaction):
         await button.response.send_message("Button detected!");
  
