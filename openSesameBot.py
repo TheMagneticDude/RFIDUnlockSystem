@@ -14,7 +14,6 @@ GUILD_ID = discord.Object(id=1490450047085838446);
 
 
  
-#========================= Init =========================
 
 
 #========================= Class =========================
@@ -33,8 +32,8 @@ class Client(commands.Bot):
     
     
     
-#========================= Main stuffs =========================
 
+#========================= Init =========================
 intents = discord.Intents.default();
 intents.message_content = True;
 client = Client(command_prefix = "!sesame", intents = intents);
@@ -43,9 +42,13 @@ client = Client(command_prefix = "!sesame", intents = intents);
 
 
 
-
+#========================= Commands =========================
+@client.tree.command(name="test", description="test", guild = GUILD_ID)
+async def test(interaction: discord.Interaction):
+    await interaction.response.send_message("Test");
+    
 @client.tree.command(name="door", description="Controls Door", guild = GUILD_ID)
-async def printer(interaction: discord.Interaction):
+async def doorCommand(interaction: discord.Interaction):
     embed = discord.Embed(title = "Door State", description = "TestState");
     await interaction.response.send_message(embed = embed);
 
