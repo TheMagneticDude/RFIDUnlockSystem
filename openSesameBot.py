@@ -12,6 +12,13 @@ botToken = os.getenv("DISCORD_TOKEN");
 GUILD_ID = discord.Object(id=1490450047085838446);
 
 
+
+ 
+#========================= Init =========================
+intents = discord.Intents.default();
+intents.message_content = True;
+client = Client(command_prefix = "!sesame", intents = intents);
+
 #========================= Class =========================
 class Client(commands.Bot):
     async def on_ready(self):
@@ -32,17 +39,6 @@ class Client(commands.Bot):
     
     
 #========================= Main stuffs =========================
-
-
-intents = discord.Intents.default();
-intents.message_content = True;
-client = Client(command_prefix = "!sesame", intents = intents);
-
-
-
-
-
-
 
 #run bot
 client.run(botToken);
