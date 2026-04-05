@@ -27,15 +27,15 @@ class Client(commands.Bot):
             print(e)
         
     async def on_message(self, message):
-    if message.author == self.user:
-        return
+        if message.author == self.user:
+            return
 
-    if message.content.startswith('!sesame'):
-        await message.channel.send(
-            f'Command Recieved: {message.author} executed: {message.content}'
-        )
+        if message.content.startswith('!sesame'):
+            await message.channel.send(
+                f'Command Recieved: {message.author} executed: {message.content}'
+            )
 
-    await self.process_commands(message)
+        await self.process_commands(message)
 
     
  
