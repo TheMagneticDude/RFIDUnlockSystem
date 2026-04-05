@@ -23,7 +23,7 @@ class Client(commands.Bot):
         if message.content.startswith('!sesame'):
             await message.channel.send(f'Command Recieved: {message.author} executed: {message.content}');
 
-    @client.tree.command(name="door", description="Controls Door", guild = GUILD_ID);
+    @client.tree.command(name="door", description="Controls Door", guild = GUILD_ID)
     async def printer(interaction: discord.Interaction):
         embed = discord.Embed(title = "Door State", description = "TestState");
         await interaction.response.send_message(embed = embed);
