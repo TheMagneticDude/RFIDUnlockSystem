@@ -17,6 +17,7 @@ import subprocess
 import discord
 from discord.ext import commands, tasks
 from discord import app_commands
+import asyncio
 
 #stop gpio 14 and 15 from being changed away from uart pins
 subprocess.run(['raspi-gpio', 'set', '14', 'a0'])
@@ -103,6 +104,7 @@ botToken = '';
 botToken = os.getenv("DISCORD_TOKEN");
 
 GUILD_ID = discord.Object(id=1490450047085838446);
+LOG_CHANNEL_ID = 1490451979841966205
 
 #========================= Global States =========================
 embed_door_open = False
@@ -136,6 +138,30 @@ def build_door_embed():
         color=color
     )
     return embed
+
+
+
+# discord logging
+async def send_log_async(log_message):
+    """The async function that actually talks to Discord."""
+    channel = client.get_channel(LOG_CHANNEL_ID)
+    if channel:
+        # Get the current time for the log
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        await channel.send(f"🕒 `{timestamp}` | 🚪 **Door Log:** {log_message}")
+    else:
+        print("ERROR: Could not find the Discord log channel!")
+
+def log_to_discord(log_message):
+    """The sync function your hardware threads will call."""
+    # Ensure the Discord bot is actually running before trying to log
+    if client.is_ready():
+        # Safely push the async function into the running Discord loop
+        asyncio.run_coroutine_threadsafe(send_log_async(log_message), client.loop)
+
+
+
+
 
 #========================= Class =========================
 class Client(commands.Bot):
@@ -199,7 +225,7 @@ class ViewButton(discord.ui.View):
         #send door command on button press
         #run unlock servo in separate thread
         threading.Thread(target=unlockServo, daemon=True).start()
-            
+        log_to_discord(f"[INFO] Door unlocked via Discord by **{interaction.user.display_name}**")
         
         #update message
         await interaction.response.edit_message(embed=build_door_embed(), view=self);
@@ -290,6 +316,7 @@ def fingerprint_listener():
                                     idx = valid_fingers.index(finger.finger_id)
                                     if DEBUGMODE: print("Authorized finger:", finger_names[idx])
                                     logging.info(f"[INFO] Authorized! Door unlocked to {finger_names[idx]}")
+                                    log_to_discord(f"[INFO] Authorized! Door unlocked via Fingerprint by **{finger_names[idx]}**.")
                                     unlockServo()
                                 except ValueError:
                                     logging.warning(f"[WARN] Unauthorized fingerprint ID {finger.finger_id}")
@@ -435,6 +462,7 @@ def mag_switch_thread():
                 lastDoorState = raw
                 if DEBUGMODE: print("Door Open (instant)")
                 logging.info("[INFO] Door Open (instant)")
+                log_to_discord("[INFO] Door **OPENED**.")
             time.sleep(0.01)
             continue
 
@@ -447,6 +475,7 @@ def mag_switch_thread():
             lastDoorState = GPIO.HIGH
             if DEBUGMODE: print("Door Closed (debounced)")
             logging.info("[INFO] Door Closed (debounced)")
+            log_to_discord("[INFO] Door **CLOSED**.")
 
         time.sleep(0.01)
 
@@ -488,6 +517,7 @@ def hardware_main_loop():
             if button_pressed(BUTTON_PIN, 200):
                 if DEBUGMODE: print("Door unlocked from inside")
                 logging.info(f"[INFO] Door Unlocked from inside")
+                log_to_discord("[INFO] Door Unlocked from inside");
                 unlockServo()
             
             try:
@@ -502,6 +532,7 @@ def hardware_main_loop():
                             index = valid_keys.index(card_id)
                             if DEBUGMODE: print("Authorized! Unlocking door...")
                             logging.info(f"[INFO] Authorized! Door unlocked to {id_names[index]}")
+                            log_to_discord(f"[INFO] Authorized! Door unlocked via RFID by **{id_names[index]}**.")
                             unlockServo()
                         else:
                             logging.info(f"[WARNING] Unauthorized card id: {card_id}")
