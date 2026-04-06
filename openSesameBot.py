@@ -64,6 +64,7 @@ def updateDoorEmbed():
 
 #discord UI button component
 class ViewButton(discord.ui.View):
+    global doorembed, unlocked
     @discord.ui.button(label="Unlock", style=discord.ButtonStyle.primary, emoji="🧲")
     async def button_callback(self, button, interaction):
         await button.response.send_message("Button detected!");
