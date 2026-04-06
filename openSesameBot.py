@@ -52,33 +52,26 @@ embedTitle = "Door State: Locked 🔒"
 #"Door State: Unlocked 🔓"
 
 
-doorembed = discord.Embed(title = embedTitle, description = "TestState", color = discord.Color.green());
-doorembed.set_thumbnail(url="https://cdn.discordapp.com/attachments/805648700365209631/1419696609620398213/Magnets_symbol128x128.png?ex=69d3c780&is=69d27600&hm=e2d3edfc0e19da48f838cb84a7f7c570af1714d7c5ab316d3ed9cb4c9f89f798&");
-   
-
-def updateDoorEmbed():
-    global doorembed
-    doorembed = discord.Embed(title = embedTitle, description = "TestState", color = discord.Color.green());
-    doorembed.set_thumbnail(url="https://cdn.discordapp.com/attachments/805648700365209631/1419696609620398213/Magnets_symbol128x128.png?ex=69d3c780&is=69d27600&hm=e2d3edfc0e19da48f838cb84a7f7c570af1714d7c5ab316d3ed9cb4c9f89f798&");  
-
+def build_door_embed():
+    global unlocked
+    if unlocked:
+        return discord.Embed(title="Door State: Unlocked 🔓",description="Door is currently unlocked",color=discord.Color.green())
+    else:
+        return discord.Embed(title="Door State: Locked 🔒",description="Door is currently locked",color=discord.Color.red())
+        
+        
 
 #discord UI button component
 class ViewButton(discord.ui.View):
-    global doorembed, unlocked
+    
     @discord.ui.button(label="Unlock", style=discord.ButtonStyle.primary, emoji="🧲")
-    async def button_callback(self, button, interaction):
-        await button.response.send_message("Button detected!");
+    async def button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        global doorembed, unlocked
         #update embed on button press
         unlocked = not unlocked;
-        
-        if(unlocked):
-            embedColor = discord.Color.green();
-            embedTitle = "Unlocked 🔓"
-        else:
-            embedColor = discord.Color.red();
-            embedTitle = "Door State: Locked 🔒"
-        updateDoorEmbed()
-        await interaction.response.edit_message(embed=doorembed)
+       
+        #update message
+        await interaction.response.edit_message(embed=doorembed, view=self);
  
     
     
@@ -100,7 +93,7 @@ async def test(interaction: discord.Interaction):
     
 @client.tree.command(name="door", description="Controls Door", guild = GUILD_ID)
 async def doorCommand(interaction: discord.Interaction):
-    await interaction.response.send_message(embed = doorembed, view=ViewButton());
+    await interaction.response.send_message(embed = build_door_embed(), view=ViewButton());
 
 
 
