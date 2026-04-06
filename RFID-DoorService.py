@@ -203,7 +203,12 @@ class ViewButton(discord.ui.View):
         
         #update message
         await interaction.response.edit_message(embed=build_door_embed(), view=self);
- 
+        
+        
+ #========================= Init =========================
+intents = discord.Intents.default();
+intents.message_content = True;
+client = Client(command_prefix = "!sesame", intents = intents);
 
 #========================= Commands =========================
 @client.tree.command(name="test", description="test", guild = GUILD_ID)
@@ -216,16 +221,6 @@ async def doorCommand(interaction: discord.Interaction):
     await interaction.response.send_message(embed = build_door_embed(), view=ViewButton());
     door_message = await interaction.original_response()
 
-
-#async thread for discord bot
-def discordBotThread():
-    #========================= Init =========================
-    intents = discord.Intents.default();
-    intents.message_content = True;
-    client = Client(command_prefix = "!sesame", intents = intents);
-
-    #========================= Run Bot =========================
-    client.run(botToken);
 
 
 
@@ -541,8 +536,5 @@ if __name__ == "__main__":
     threading.Thread(target=hardware_main_loop, daemon=True).start()
     
     # 3. Start the Discord Bot on the MAIN thread
-    intents = discord.Intents.default()
-    intents.message_content = True
-    client = Client(command_prefix="!sesame", intents=intents)
     client.run(botToken)
 
