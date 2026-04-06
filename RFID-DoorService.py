@@ -14,6 +14,9 @@ import os
 
 import subprocess
 
+import discord
+from discord.ext import commands, tasks
+from discord import app_commands
 
 #stop gpio 14 and 15 from being changed away from uart pins
 subprocess.run(['raspi-gpio', 'set', '14', 'a0'])
@@ -87,6 +90,143 @@ logging.basicConfig(
     format='%(asctime)s - %(message)s'
 )
 logging.info("RFID Program started")
+
+
+
+
+#========================= Discord Bot Integration =========================
+
+#========================= Constants =========================
+#will fill in after to avoid secret being in repo
+botToken = '';
+#grab token from local env variable
+botToken = os.getenv("DISCORD_TOKEN");
+
+GUILD_ID = discord.Object(id=1490450047085838446);
+
+#========================= Global States =========================
+embed_door_open = False
+door_message = None # discord message
+embed_unlocked = False;
+
+#door state to track if door is open or not
+    #closed by default
+doorState = False;
+#door unlocked hardware state
+doorUnlockedState = False;
+
+
+embedColor = discord.Color.red();
+embedTitle = "Door State: Locked 🔒"
+#discord.Color.green();
+#"Door State: Unlocked 🔓"
+
+
+def build_door_embed():
+    global embed_unlocked, embed_door_open
+    
+    lock_state = "Unlocked 🔓" if embed_unlocked else "Locked 🔒"
+    door_state = "Open 🚪" if embed_door_open else "Closed 🚪"
+    
+    color = discord.Color.green() if embed_unlocked else discord.Color.red()
+    
+    embed = discord.Embed(
+        title=f"Door is {lock_state}",
+        description=f"Physical Door State: **{door_state}**",
+        color=color
+    )
+    return embed
+
+#========================= Class =========================
+class Client(commands.Bot):
+    async def on_ready(self):
+        print(f'Logged on as {self.user}!');
+        try:
+            synced = await self.tree.sync(guild=GUILD_ID)
+            print(f"Synced {len(synced)} command(s) to guild.")
+        except Exception as e:
+            print(e)
+        
+        # START THE LOOP HERE
+        if not self.hardware_monitor.is_running():
+            self.hardware_monitor.start()
+        
+    async def on_message(self, message):
+        if message.author == self.user:
+            return
+
+        if message.content.startswith('!sesame'):
+            await message.channel.send(
+                f'Command Recieved: {message.author} executed: {message.content}'
+            )
+
+        await self.process_commands(message)
+        
+        
+        
+        
+    #async background thread to update door message
+    @tasks.loop(seconds=5.0) # updates every 5 seconds
+    async def hardware_monitor(self):
+        global door_message, embed_door_open, embed_unlocked
+        if door_message is None:
+                    return # door command has not been run yet
+        if doorState != embed_door_open or doorUnlockedState != embed_unlocked:
+            embed_door_open = doorState;
+            embed_unlocked = doorUnlockedState;
+            #update variables if any of them are out of sync
+            
+            try:
+                # Edit the saved message directly using the Discord API
+                await door_message.edit(embed=build_door_embed(), view=ViewButton())
+                print("Discord message dynamically updated from hardware state!")
+            except discord.NotFound:
+                # The message was deleted in Discord
+                door_message = None
+
+
+
+
+
+#========================= UI Components =========================
+class ViewButton(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None) # Prevents the button from expiring
+        
+    @discord.ui.button(label="Unlock", style=discord.ButtonStyle.primary, emoji="🧲")
+    async def button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
+        global embed_unlocked
+        #send door command on button press
+        #run unlock servo in separate thread
+        threading.Thread(target=unlockServo, daemon=True).start()
+            
+        
+        #update message
+        await interaction.response.edit_message(embed=build_door_embed(), view=self);
+ 
+
+#========================= Commands =========================
+@client.tree.command(name="test", description="test", guild = GUILD_ID)
+async def test(interaction: discord.Interaction):
+    await interaction.response.send_message("Test");
+    
+@client.tree.command(name="door", description="Controls Door", guild = GUILD_ID)
+async def doorCommand(interaction: discord.Interaction):
+    global door_message
+    await interaction.response.send_message(embed = build_door_embed(), view=ViewButton());
+    door_message = await interaction.original_response()
+
+
+#async thread for discord bot
+def discordBotThread():
+    #========================= Init =========================
+    intents = discord.Intents.default();
+    intents.message_content = True;
+    client = Client(command_prefix = "!sesame", intents = intents);
+
+    #========================= Run Bot =========================
+    client.run(botToken);
+
 
 
 
@@ -329,90 +469,80 @@ def is_door_open():
 
 
 
-if __name__ == "__main__":
-    ##start async thread
-    # === Start Fingerprint Thread ===
-    if(FINGERPRINT): # only activate listener if fingerprint is enabled
-        listener_thread = threading.Thread(target=fingerprint_listener, daemon=True)
-        listener_thread.start()
-    #scan magswitch
-    mag_thread = threading.Thread(target=mag_switch_thread, daemon=True)
-    mag_thread.start()
-    
-    
-    #INIT=================================================
+def hardware_main_loop():
     # Initial door state from magswitch
     initial_state = GPIO.input(MAGSWITCH_PIN)
     if initial_state:  # HIGH = closed
+        global doorState, lastDoorState, doorUnlockedState
         doorState = False
         lastDoorState = True
-        # if door starts out closed run lock process
         lockServo()
         logging.info("[INFO] Init door closed, locking")
-        doorUnlockedState = False;
+        doorUnlockedState = False
     else:  # LOW = open
         doorState = True
         lastDoorState = False
-        doorUnlockedState = True; # assume unlocked if door open
+        doorUnlockedState = True # assume unlocked if door open
 
     try:
-        
         while True:
-            
             if unlockGraceActive:
-                time.sleep(0.1) # dont run code if unlockGrace is active
+                time.sleep(0.1)
                 continue
                 
-            #print("Button Pin State: ", GPIO.input(BUTTON_PIN));
-            #Internal unlock Button logic
-   
-            if(button_pressed(BUTTON_PIN, 200)): #HIGH when pressed down
-                if(DEBUGMODE): print("Door unlocked from inside")
+            if button_pressed(BUTTON_PIN, 200):
+                if DEBUGMODE: print("Door unlocked from inside")
                 logging.info(f"[INFO] Door Unlocked from inside")
-                unlockServo();
-            
+                unlockServo()
             
             try:
-                if(RFIDREADER): # only run if RFID Reader is enabled
+                if RFIDREADER:
+                    global last_read_time
                     card_id = reader.read_id_no_block()
                     if card_id and time.time() - last_read_time > 1:
-                        if(DEBUGMODE): print(f"Tag detected: {card_id}")
+                        if DEBUGMODE: print(f"Tag detected: {card_id}")
                         last_read_time = time.time()
 
                         if card_id in valid_keys:
                             index = valid_keys.index(card_id)
-                            if(DEBUGMODE): print("Authorized! Unlocking door...")
-                            if(DEBUGMODE): print("Welcome", id_names[index])
+                            if DEBUGMODE: print("Authorized! Unlocking door...")
                             logging.info(f"[INFO] Authorized! Door unlocked to {id_names[index]}")
-
-                            unlockServo();
-
+                            unlockServo()
                         else:
                             logging.info(f"[WARNING] Unauthorized card id: {card_id}")
-                            if(DEBUGMODE): print("? Unauthorized card")
                             GPIO.output(INVALID_PIN, GPIO.HIGH)
                             time.sleep(3)
                             GPIO.output(INVALID_PIN, GPIO.LOW)
             except Exception as e:
                 logging.error(f"[ERROR] RFID read error: {e}")
-                if(DEBUGMODE): print("Skipping read error:", e)
 
             time.sleep(0.2)
-            # door closing logic (only lock when door just closed)
+            
+            # door closing logic
             if doorState == False and doorUnlockedState == True and unlockGraceActive == False:
-                # door just transitioned from open -> closed
                 lockServo()
-                if(DEBUGMODE): print("Door closed, locking...")
+                if DEBUGMODE: print("Door closed, locking...")
                 logging.info("[INFO] Door closed, locking")
-                
 
-    except KeyboardInterrupt:
-        logging.info("RFID Program interrupted by user.")
     except Exception as e:
         logging.error(f"[ERROR] Unhandled error: {e}")
-        if(DEBUGMODE): print("Unhandled error occurred:", e)
     finally:
         pwm.stop()
         GPIO.cleanup()
-        if(DEBUGMODE): print('GPIO cleaned up.')
+
+if __name__ == "__main__":
+    # 1. Start Hardware Background Threads
+    if FINGERPRINT:
+        threading.Thread(target=fingerprint_listener, daemon=True).start()
+    
+    threading.Thread(target=mag_switch_thread, daemon=True).start()
+    
+    # 2. Start the main hardware loop in a background thread
+    threading.Thread(target=hardware_main_loop, daemon=True).start()
+    
+    # 3. Start the Discord Bot on the MAIN thread
+    intents = discord.Intents.default()
+    intents.message_content = True
+    client = Client(command_prefix="!sesame", intents=intents)
+    client.run(botToken)
 

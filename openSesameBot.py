@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands, tasks
 from discord import app_commands
 import os
-import time
 
 
 #========================= Constants =========================
@@ -108,8 +107,6 @@ class ViewButton(discord.ui.View):
         global embed_unlocked
         #send door command on button press
         
-        #wait 1 s for response
-        time.sleep(1);
         #update message
         await interaction.response.edit_message(embed=build_door_embed(), view=self);
  
