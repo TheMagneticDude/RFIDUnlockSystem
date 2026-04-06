@@ -166,7 +166,7 @@ class Client(commands.Bot):
         
         
     #async background thread to update door message
-    @tasks.loop(seconds=5.0) # updates every 5 seconds
+    @tasks.loop(seconds=1.0) # updates every 1 second
     async def hardware_monitor(self):
         global door_message, embed_door_open, embed_unlocked
         if door_message is None:
