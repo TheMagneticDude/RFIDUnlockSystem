@@ -18,7 +18,7 @@ embed_unlocked = False;
 
 #door state to track if door is open or not
     #closed by default
-doorState = false;
+doorState = False;
 #door unlocked hardware state
 doorUnlockedState = False;
 
