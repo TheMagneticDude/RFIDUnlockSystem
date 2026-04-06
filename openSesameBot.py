@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands, tasks
 from discord import app_commands
 import os
+import time
+
 
 #========================= Constants =========================
 #will fill in after to avoid secret being in repo
