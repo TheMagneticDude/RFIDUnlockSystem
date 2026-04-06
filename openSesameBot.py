@@ -56,7 +56,7 @@ doorembed = discord.Embed(title = embedTitle, description = "TestState", color =
 doorembed.set_thumbnail(url="https://cdn.discordapp.com/attachments/805648700365209631/1419696609620398213/Magnets_symbol128x128.png?ex=69d3c780&is=69d27600&hm=e2d3edfc0e19da48f838cb84a7f7c570af1714d7c5ab316d3ed9cb4c9f89f798&");
    
 
-def updateDoorEmbed(:
+def updateDoorEmbed():
     global doorembed
     doorembed = discord.Embed(title = embedTitle, description = "TestState", color = discord.Color.green());
     doorembed.set_thumbnail(url="https://cdn.discordapp.com/attachments/805648700365209631/1419696609620398213/Magnets_symbol128x128.png?ex=69d3c780&is=69d27600&hm=e2d3edfc0e19da48f838cb84a7f7c570af1714d7c5ab316d3ed9cb4c9f89f798&");  
