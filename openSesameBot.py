@@ -66,7 +66,7 @@ class ViewButton(discord.ui.View):
     
     @discord.ui.button(label="Unlock", style=discord.ButtonStyle.primary, emoji="🧲")
     async def button_callback(self, interaction: discord.Interaction, button: discord.ui.Button):
-        global doorembed, unlocked
+        global unlocked
         #update embed on button press
         unlocked = not unlocked;
        
