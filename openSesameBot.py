@@ -65,8 +65,7 @@ async def test(interaction: discord.Interaction):
 async def doorCommand(interaction: discord.Interaction):
     embed = discord.Embed(title = "Door State", description = "TestState", color = discord.Color.green());
     embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/805648700365209631/1419696609620398213/Magnets_symbol128x128.png?ex=69d3c780&is=69d27600&hm=e2d3edfc0e19da48f838cb84a7f7c570af1714d7c5ab316d3ed9cb4c9f89f798&");
-    await interaction.response.send_message(embed = embed);
-    await interaction.response.send_message(view=View());
+    await interaction.response.send_message(embed = embed, view=View());
 
 
 
