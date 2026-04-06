@@ -71,7 +71,7 @@ class ViewButton(discord.ui.View):
         unlocked = not unlocked;
        
         #update message
-        await interaction.response.edit_message(embed=doorembed, view=self);
+        await interaction.response.edit_message(embed=build_door_embed(), view=self);
  
     
     
